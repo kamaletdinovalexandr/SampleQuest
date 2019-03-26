@@ -3,3 +3,5 @@ ProjectSettings/
 Temp/
 *.csproj
 *.sln
+.vscode/
+obj/
