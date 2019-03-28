@@ -2,11 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Item : ScriptableObject {
+namespace Items {
+    public class Item {
 
-	public string Id;
+        public string Name { get; private set; }
+        public string Description { get; private set; }
+        public Sprite Icon { get; private set; }
+        public ObjectType Type { get; private set; }
 
-	public Sprite Icon;
-
-	public virtual void Interact() {}
+        public Item(string name, string descriprion, Sprite icon, ObjectType type) {
+            Name = name;
+            Description = descriprion;
+            Icon = icon;
+            Type = type;
+        }
+    }
 }
