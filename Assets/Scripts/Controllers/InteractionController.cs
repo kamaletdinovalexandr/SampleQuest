@@ -12,7 +12,8 @@ namespace Controllers {
         [SerializeField] private Text Message;
         [SerializeField] private Text ItemAction;
 
-        private BaseItem _currentBaseItem;
+        private BaseItem _currentHoveredItem;
+        private Item _currentSelectedItem;
 
         private void Start() {
             InitText();
@@ -27,16 +28,22 @@ namespace Controllers {
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             if (hit) {
                 var go = hit.collider.gameObject;
-                _currentBaseItem = go.GetComponent<BaseItem>();
-                if (_currentBaseItem != null)
-                    ChangeCurrentAction(_currentBaseItem.GetItem().Type);
+                _currentHoveredItem = go.GetComponent<BaseItem>();
+                var item = _currentHoveredItem.GetItem();
+                if (_currentSelectedItem != null)
+                    ItemAction.text = "Interact " + _currentSelectedItem.Name + "with " + item.Name;
+                else if (_currentHoveredItem != null)
+                        ChangeCurrentAction(item.Type);
             }  else {
-                _currentBaseItem = null;
-                ItemAction.text = string.Empty;
+                _currentHoveredItem = null;
+                return;
             }
 
-            if (Input.GetMouseButtonDown(0) && _currentBaseItem != null)
-                Interact(_currentBaseItem.GetItem());
+            if (Input.GetMouseButtonDown(0)) {
+                Message.text = string.Empty;
+                ItemAction.text = string.Empty;
+                Interact(_currentHoveredItem.GetItem());
+            }
         }
 
         public void SetMessage(string text) {
@@ -66,7 +73,7 @@ namespace Controllers {
                     LookInteraction(item.Description);
                     break;
                 case ObjectType.interactable:
-                    UseInteraction();
+                    UseInteraction(item);
                     break;
                 case ObjectType.takeble:
                     TakeInteraction(item);
@@ -78,15 +85,25 @@ namespace Controllers {
             SetMessage(message);
         }
 
-        private void UseInteraction() {
+        private void UseInteraction(Item item) {
+            if (_currentSelectedItem == null) {
+                Message.text = "Nothing to use with";
+            }
+               
+
 
         }
 
         private void TakeInteraction(Item item) {
             if (InventoryManager.Instance.PutItem(item)) {
-                _currentBaseItem.gameObject.SetActive(false);
-                _currentBaseItem = null;
+                _currentHoveredItem.gameObject.SetActive(false);
+                _currentHoveredItem = null;
             }
-        } 
+        }
+
+        public void SetSelectedItem(Item item) {
+            _currentSelectedItem = item;
+            ItemAction.text = item.Name + " was selected";
+        }
     }
 }

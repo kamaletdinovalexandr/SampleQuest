@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Items;
+using Controllers;
 
 namespace Inventory {
     public class Slot : MonoBehaviour {
@@ -15,6 +16,7 @@ namespace Inventory {
         private void Awake() {
             _button = GetComponent<Button>();
             _icon = GetComponent<Image>();
+            _button.onClick.AddListener(OnItemSelect);
         }
 
         public void AddItem(Item item) {
@@ -29,6 +31,14 @@ namespace Inventory {
             _icon = null;
             _button.interactable = false;
             IsEmpty = true;
+        }
+
+        private void OnItemSelect() {
+            InteractionController.Instance.SetSelectedItem(Item);
+        }
+
+        private void OnDestroy() {
+            _button.onClick.RemoveAllListeners();
         }
     }
 }
