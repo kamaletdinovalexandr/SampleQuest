@@ -2,43 +2,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using Items;
 using Controllers;
 
 namespace Inventory {
-    public class Slot : MonoBehaviour {
+    public class Slot : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler {
 
         [SerializeField] private Image _icon;
-        private Button _button;
         public Item Item { get; private set; }
         public bool IsEmpty = true;
+        private Vector2 _iconPosition;
 
         private void Awake() {
-            _button = GetComponent<Button>();
             _icon = GetComponent<Image>();
-            _button.onClick.AddListener(OnItemSelect);
+            _icon.enabled = false;
         }
 
         public void AddItem(Item item) {
             Item = item;
+            _icon.enabled = true;
             _icon.sprite = item.Icon;
-            _button.interactable = true;
             IsEmpty = false;
         }
 
         public void ClearItem() {
             Item = null;
-            _icon = null;
-            _button.interactable = false;
+            _icon.sprite = null;
+            _icon.enabled = false;
             IsEmpty = true;
         }
 
-        private void OnItemSelect() {
-            InteractionController.Instance.SetSelectedItem(Item);
+        public void OnBeginDrag(PointerEventData eventData) {
+            _iconPosition = transform.localPosition;
+            InteractionController.Instance.InventryInteraction = true;
         }
 
-        private void OnDestroy() {
-            _button.onClick.RemoveAllListeners();
+        public void OnDrag(PointerEventData eventData) {
+            _icon.transform.position = Input.mousePosition;
         }
+
+        public void OnEndDrag(PointerEventData eventData) {
+            InteractionController.Instance.InventoryInteract(Item);
+            transform.localPosition = _iconPosition;
+            InteractionController.Instance.InventryInteraction = false;
+        }  
     }
 }

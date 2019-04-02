@@ -11,9 +11,9 @@ namespace Controllers {
         [SerializeField] Camera _camera;
         [SerializeField] private Text Message;
         [SerializeField] private Text ItemAction;
+        public bool InventryInteraction;
 
         private BaseItem _currentHoveredItem;
-        private Item _currentSelectedItem;
 
         private void Start() {
             InitText();
@@ -24,86 +24,73 @@ namespace Controllers {
             ItemAction.text = string.Empty;
         }
 
-        private void Update() {
+        private void FixedUpdate() {
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             if (hit) {
                 var go = hit.collider.gameObject;
                 _currentHoveredItem = go.GetComponent<BaseItem>();
-                var item = _currentHoveredItem.GetItem();
-                if (_currentSelectedItem != null)
-                    ItemAction.text = "Interact " + _currentSelectedItem.Name + "with " + item.Name;
-                else if (_currentHoveredItem != null)
-                        ChangeCurrentAction(item.Type);
-            }  else {
-                _currentHoveredItem = null;
-                return;
-            }
+                if (_currentHoveredItem == null) {
+                    ItemAction.text = string.Empty;
+                    return;
+                }
 
-            if (Input.GetMouseButtonDown(0)) {
-                Message.text = string.Empty;
-                ItemAction.text = string.Empty;
-                Interact(_currentHoveredItem.GetItem());
+                SetItemActionText();
+
+                if (Input.GetMouseButtonDown(0) && !InventryInteraction) {
+                    Message.text = string.Empty;
+                    Interact(_currentHoveredItem.GetItem());
+                }
             }
+            else {
+                _currentHoveredItem = null;
+                ItemAction.text = string.Empty;
+            }
+        }
+
+        private void SetItemActionText() {
+            if (InventryInteraction) {
+                ItemAction.text = "Use with " + _currentHoveredItem.name;
+            }
+            else if (_currentHoveredItem.isTakable)
+                ItemAction.text = "Take the " + _currentHoveredItem.name;
+            else
+                ItemAction.text = "Look at " + _currentHoveredItem.name;
         }
 
         public void SetMessage(string text) {
             Message.text = text;
         }
 
-        private void ChangeCurrentAction(ObjectType type) {
-            string objectActionText = string.Empty;
-            switch (type) {
-                case ObjectType.descriptable:
-                    objectActionText = "Look At";
-                    break;
-                case ObjectType.interactable:
-                    objectActionText = "Use";
-                    break;
-                case ObjectType.takeble:
-                    objectActionText = "Take";
-                    break;
-            }
+        public void InventoryInteract(Item item) {
+            if (_currentHoveredItem == null)
+                return;
 
-            ItemAction.text = objectActionText;
+            var craftItem = _currentHoveredItem.Interact(item);
+            if (craftItem != null) {
+                InventoryManager.Instance.RemoveItem(item);
+                InventoryManager.Instance.PutItem(craftItem);
+                Message.text = "You took the " + craftItem.Name;
+            }
         }
 
         private void Interact(Item item) {
-            switch (item.Type) {
-                case ObjectType.descriptable:
-                    LookInteraction(item.Description);
-                    break;
-                case ObjectType.interactable:
-                    UseInteraction(item);
-                    break;
-                case ObjectType.takeble:
-                    TakeInteraction(item);
-                    break;
+            if (item.IsTakable) {
+                TakeInteraction(item);
             }
-        }
-
-        private void LookInteraction(string message) {
-            SetMessage(message);
-        }
-
-        private void UseInteraction(Item item) {
-            if (_currentSelectedItem == null) {
-                Message.text = "Nothing to use with";
-            }
-               
-
-
+            else
+                Message.text = item.Description;
         }
 
         private void TakeInteraction(Item item) {
             if (InventoryManager.Instance.PutItem(item)) {
                 _currentHoveredItem.gameObject.SetActive(false);
                 _currentHoveredItem = null;
+                Message.text = "You took the " + item.Name;
             }
         }
 
         public void SetSelectedItem(Item item) {
-            _currentSelectedItem = item;
-            ItemAction.text = item.Name + " was selected";
+           
         }
     }
 }

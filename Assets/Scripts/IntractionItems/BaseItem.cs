@@ -6,17 +6,30 @@ using Controllers;
 namespace Items {
     public class BaseItem : MonoBehaviour {
 
-        [SerializeField] private string Name;
-        [SerializeField] private string Description;
-        [SerializeField] private ObjectType Type;
-        private Sprite _icon;
+        [Header("Item properties")]
+        public string Name;
+        public string Description;
+        public Sprite Icon;
+        public bool isTakable;
+        [Space]
+        [Header("Crafting area")]
+        public string InputItemName;
+        public string CraftedItemName;
+        public Sprite CraftedItemIcon;
 
-        private void Awake() {
-            _icon = GetComponent<SpriteRenderer>().sprite;
+        public void Awake() {
+            Icon = GetComponent<SpriteRenderer>().sprite;
         }
 
-        public Item GetItem() {
-            return new Item(Name, Description, _icon, Type);
+        public Item GetItem() { 
+            return new Item(Name, Icon, Description, isTakable);
         }
+
+        public Item Interact(Item item) {
+            if (item.Name == InputItemName) {
+                return new Item(CraftedItemName, CraftedItemIcon, "", true);
+            }
+            return null;
+        }  
     }
 }
