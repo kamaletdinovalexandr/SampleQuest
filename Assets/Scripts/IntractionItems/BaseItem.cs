@@ -25,7 +25,7 @@ namespace Items {
             return new Item(Name, Icon, Description, isTakable);
         }
 
-        public Item Interact(Item item) {
+        public virtual Item Interact(Item item) {
             if (item.Name == InputItemName) {
                 return new Item(CraftedItemName, CraftedItemIcon, "", true);
             }

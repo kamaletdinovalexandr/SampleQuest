@@ -28,6 +28,15 @@ namespace Controllers {
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             if (hit) {
                 var go = hit.collider.gameObject;
+
+                var portal = go.GetComponent<ScenePortal>();
+                if (Input.GetMouseButtonDown(0) && portal != null) {
+                    if (portal.PortalState == PortalState.open) {
+                        portal.UsePortal();
+                        return;
+                    }
+                }
+
                 _currentHoveredItem = go.GetComponent<BaseItem>();
                 if (_currentHoveredItem == null) {
                     ItemAction.text = string.Empty;

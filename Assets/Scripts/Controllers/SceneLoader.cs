@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneLoader : MonoBehaviour {
+public class SceneLoader : MBSingleton<SceneLoader> {
     [SerializeField] private string StartSceneName;
 
 	void Start () {
-        SceneManager.LoadScene(StartSceneName, LoadSceneMode.Additive);
+        ChangeLocation(StartSceneName);
+    }
+
+    public void ChangeLocation(string location) {
+        SceneManager.LoadScene(location, LoadSceneMode.Additive);
+    }
+
+    public void UnloadScene(string location) {
+        SceneManager.UnloadScene(location);
     }
 }
