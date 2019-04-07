@@ -16,7 +16,7 @@ namespace Inventory {
                     return true;
                 }
             }
-            InteractionController.Instance.SetMessage("Inventory is full");
+            //InteractionController.Instance.SetMessage("Inventory is full");
             return false;
         }
 

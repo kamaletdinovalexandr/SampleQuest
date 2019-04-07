@@ -4,13 +4,13 @@ using UnityEngine;
 using Controllers;
 
 namespace Items {
-    public class BaseItem : MonoBehaviour {
+    public class ItemView : MonoBehaviour {
 
         [Header("Item properties")]
         public string Name;
         public string Description;
-        public Sprite Icon;
-        public bool isTakable;
+        private Sprite Icon;
+        public bool IsTakable;
         [Space]
         [Header("Crafting area")]
         public string InputItemName;
@@ -22,14 +22,11 @@ namespace Items {
         }
 
         public Item GetItem() { 
-            return new Item(Name, Icon, Description, isTakable);
+            return new Item(Name, Icon, Description, InputItemName, CraftedItemName, CraftedItemIcon);
         }
 
         public virtual Item Interact(Item item) {
-            if (item.Name == InputItemName) {
-                return new Item(CraftedItemName, CraftedItemIcon, "", true);
-            }
-            return null;
+            return GetItem().Interact(item);
         }  
     }
 }

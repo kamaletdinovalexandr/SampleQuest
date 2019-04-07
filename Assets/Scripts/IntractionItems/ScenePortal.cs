@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Items;
 
-public class ScenePortal : BaseItem {
+public class ScenePortal : ItemView {
 
     public PortalState PortalState = PortalState.closed;
     public string SceneToLoad;
@@ -17,8 +17,13 @@ public class ScenePortal : BaseItem {
         return null;
     }
 
-    public void UsePortal() {
-        SceneLoader.Instance.UnloadScene(SceneToLoad);
+    public bool TryUsePortal() {
+        if (PortalState == PortalState.open) {
+            SceneLoader.Instance.UnloadScene(SceneToLoad);
+            return true;
+        }
+        
+        return false;
     }
 
 

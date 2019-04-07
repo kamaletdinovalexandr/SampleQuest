@@ -2,18 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using Items;
 using Inventory;
 
 namespace Controllers {
     public class InteractionController : MBSingleton<InteractionController> {
 
-        [SerializeField] Camera _camera;
+        [SerializeField] private Camera _camera;
+        [SerializeField] private GraphicRaycaster _raycaster;
+        [SerializeField] private EventSystem _EventSystem;
         [SerializeField] private Text Message;
         [SerializeField] private Text ItemAction;
-        public bool InventryInteraction;
+        public Item SlotItem;
 
-        private BaseItem _currentHoveredItem;
+        PointerEventData _PointerEventData;
 
         private void Start() {
             InitText();
@@ -27,79 +30,111 @@ namespace Controllers {
         private void FixedUpdate() {
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             if (hit) {
-                var go = hit.collider.gameObject;
-
-                var portal = go.GetComponent<ScenePortal>();
-                if (Input.GetMouseButtonDown(0) && portal != null) {
-                    if (portal.PortalState == PortalState.open) {
-                        portal.UsePortal();
+                if (SlotItem == null) {
+                    if (TryUsePortal(hit))
                         return;
-                    }
-                }
 
-                _currentHoveredItem = go.GetComponent<BaseItem>();
-                if (_currentHoveredItem == null) {
-                    ItemAction.text = string.Empty;
-                    return;
-                }
+                    var itemView = hit.collider.GetComponent<ItemView>();
+                    if (itemView == null)
+                        return;
 
-                SetItemActionText();
-
-                if (Input.GetMouseButtonDown(0) && !InventryInteraction) {
-                    Message.text = string.Empty;
-                    Interact(_currentHoveredItem.GetItem());
+                    SetMouseItemAction(itemView);
+                    TryTakeOrLook(itemView);
                 }
+                else if (Input.GetMouseButtonUp(0) && TryItemViewInteract(hit)) {
+                        Debug.Log("Inventory item interacted with view");
+                        return;    
+                }
+            }
+            else if (Input.GetMouseButtonUp(0) && TrySlotInteract()) {
+                Debug.Log("Inventory item interacted with slot");
+                return;
+            }
+            else                                    
+                ItemAction.text = string.Empty;
+        }
+
+        private bool TryUsePortal(RaycastHit2D hit) {
+            if (!Input.GetMouseButtonDown(0))
+                return false;
+
+            var portal = hit.collider.GetComponent<ScenePortal>();
+            if (portal == null)
+                return false;
+
+            return portal.TryUsePortal();
+        }
+
+        private void SetMouseItemAction(ItemView item) {
+            if (item.IsTakable) {
+                ItemAction.text = "Take the " + item.name;
+            } 
+            else {
+                ItemAction.text = "Look at the " + item.name;
+            }
+        }
+
+        private void SetInventryItemAction(RaycastHit2D hit) {
+            var itemView = hit.collider.GetComponent<ItemView>();
+            if (itemView != null) {
+
+            }
+        }
+
+        private bool TryTakeOrLook(ItemView item) {
+            if (item.IsTakable) {
+                if (Input.GetMouseButtonDown(0) && TakeInteraction(item.GetItem())) {
+                    item.gameObject.SetActive(false);
+                    return true;
+                }                  
             }
             else {
-                _currentHoveredItem = null;
-                ItemAction.text = string.Empty;
-            }
+                if (Input.GetMouseButtonDown(0)) {
+                    Message.text = item.Description;
+                    return true;
+                }
+            }   
+            return false; 
         }
 
-        private void SetItemActionText() {
-            if (InventryInteraction) {
-                ItemAction.text = "Use with " + _currentHoveredItem.name;
-            }
-            else if (_currentHoveredItem.isTakable)
-                ItemAction.text = "Take the " + _currentHoveredItem.name;
-            else
-                ItemAction.text = "Look at " + _currentHoveredItem.name;
-        }
-
-        public void SetMessage(string text) {
-            Message.text = text;
-        }
-
-        public void InventoryInteract(Item item) {
-            if (_currentHoveredItem == null)
-                return;
-
-            var craftItem = _currentHoveredItem.Interact(item);
-            if (craftItem != null) {
-                InventoryManager.Instance.RemoveItem(item);
-                InventoryManager.Instance.PutItem(craftItem);
-                Message.text = "You took the " + craftItem.Name;
-            }
-        }
-
-        private void Interact(Item item) {
-            if (item.IsTakable) {
-                TakeInteraction(item);
-            }
-            else
-                Message.text = item.Description;
-        }
-
-        private void TakeInteraction(Item item) {
+        private bool TakeInteraction(Item item) {
             if (InventoryManager.Instance.PutItem(item)) {
-                _currentHoveredItem.gameObject.SetActive(false);
-                _currentHoveredItem = null;
                 Message.text = "You took the " + item.Name;
+                return true;
             }
+            return false;
         }
 
-        public void SetSelectedItem(Item item) {
-           
+        private bool TrySlotInteract() {
+            var pointerEventData = new PointerEventData(_EventSystem);
+            pointerEventData.position = Input.mousePosition;
+            List<RaycastResult> results = new List<RaycastResult>();
+            _raycaster.Raycast(pointerEventData, results);
+
+            foreach (RaycastResult result in results) {                
+                var otherSlot = result.gameObject.GetComponent<Slot>();
+                if (otherSlot != null && otherSlot.Item != null && otherSlot.Item != SlotItem) {
+                    var combinedItem = otherSlot.Item.Interact(SlotItem);
+                    if (combinedItem != null && InventoryManager.Instance.PutItem(combinedItem)) {
+                        InventoryManager.Instance.RemoveItem(otherSlot.Item);
+                        InventoryManager.Instance.RemoveItem(SlotItem);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool TryItemViewInteract(RaycastHit2D hit) {
+            var itemView = hit.collider.GetComponent<ItemView>();
+            if (itemView != null) {
+                var craftItem = itemView.Interact(SlotItem);
+                if (craftItem != null && InventoryManager.Instance.PutItem(craftItem)) {
+                    InventoryManager.Instance.RemoveItem(SlotItem);
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
