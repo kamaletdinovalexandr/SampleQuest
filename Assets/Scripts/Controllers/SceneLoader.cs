@@ -5,16 +5,16 @@ using UnityEngine.SceneManagement;
 
 public class SceneLoader : MBSingleton<SceneLoader> {
     [SerializeField] private string StartSceneName;
+	private string _currentScene;
 
 	void Start () {
-        ChangeLocation(StartSceneName);
+		SceneManager.LoadScene(StartSceneName, LoadSceneMode.Additive);
+		_currentScene = StartSceneName;
     }
 
     public void ChangeLocation(string location) {
-        SceneManager.LoadScene(location, LoadSceneMode.Additive);
-    }
-
-    public void UnloadScene(string location) {
-        SceneManager.UnloadScene(location);
+		SceneManager.UnloadSceneAsync(_currentScene);
+		SceneManager.LoadScene(location, LoadSceneMode.Additive);
+		_currentScene = location;
     }
 }

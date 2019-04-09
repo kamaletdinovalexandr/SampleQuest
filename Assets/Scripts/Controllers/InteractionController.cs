@@ -128,9 +128,12 @@ namespace Controllers {
         private bool TryItemViewInteract(RaycastHit2D hit) {
             var itemView = hit.collider.GetComponent<ItemView>();
             if (itemView != null) {
-                var craftItem = itemView.Interact(SlotItem);
+				var craftItem = itemView.Interact(SlotItem);
+				if (itemView.gameObject.GetComponent<ScenePortal>() == null)
+					itemView.gameObject.SetActive(false);
+				
+				InventoryManager.Instance.RemoveItem(SlotItem);
                 if (craftItem != null && InventoryManager.Instance.PutItem(craftItem)) {
-                    InventoryManager.Instance.RemoveItem(SlotItem);
                     return true;
                 }
             }

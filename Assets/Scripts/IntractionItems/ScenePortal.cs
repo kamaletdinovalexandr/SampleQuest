@@ -19,7 +19,7 @@ public class ScenePortal : ItemView {
 
     public bool TryUsePortal() {
         if (PortalState == PortalState.open) {
-            SceneLoader.Instance.UnloadScene(SceneToLoad);
+			SceneLoader.Instance.ChangeLocation(SceneToLoad);
             return true;
         }
         
