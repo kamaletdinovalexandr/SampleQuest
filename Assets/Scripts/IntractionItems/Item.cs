@@ -23,7 +23,7 @@ namespace Items {
         }
 
         public Item Interact(Item item) {
-            return item.Name == InputItemName ? new Item(CraftedItemName, CraftedItemIcon, "", "", "", null) : null;
+            return item != null && item.Name == InputItemName ? new Item(CraftedItemName, CraftedItemIcon, "", "", "", null) : null;
         }
     }
 }
