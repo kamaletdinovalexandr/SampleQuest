@@ -13,7 +13,7 @@ namespace Items {
         public string CraftedItemName;
         public Sprite CraftedItemIcon;
 
-        public Item(string name, Sprite icon, string descriprion, string inputItem, string craftedItemName, Sprite craftedIcon) {
+		public Item(string name, Sprite icon, string descriprion = "", string inputItem = "", string craftedItemName = "", Sprite craftedIcon = null) {
             Name = name;
             Description = descriprion;
             Icon = icon;
@@ -23,7 +23,7 @@ namespace Items {
         }
 
         public Item Interact(Item item) {
-            return item != null && item.Name == InputItemName ? new Item(CraftedItemName, CraftedItemIcon, "", "", "", null) : null;
+            return item != null && item.Name == InputItemName ? new Item(CraftedItemName, CraftedItemIcon) : null;
         }
     }
 }
