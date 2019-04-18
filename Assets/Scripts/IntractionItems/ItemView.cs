@@ -25,8 +25,15 @@ namespace Items {
             return new Item(Name, Icon, Description, InputItemName, CraftedItemName, CraftedItemIcon);
         }
 
-        public virtual Item Interact(Item item) {
-            return GetItem().Interact(item);
+		public virtual bool Interact(Item item, out Item craftedItem) {
+			if (!GetItem().Interact(item, out craftedItem))
+				return false;
+
+			if (IsTakable) {
+				gameObject.SetActive(false);
+			}
+
+			return true;
         }  
     }
 }

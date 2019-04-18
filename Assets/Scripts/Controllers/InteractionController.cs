@@ -30,7 +30,7 @@ namespace Controllers {
         private void FixedUpdate() {
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             if (hit) {
-                if (SlotItem == null) {
+                if (!IsInventoryInteraction()) {
                     if (TryUsePortal(hit))
                         return;
 
@@ -41,7 +41,7 @@ namespace Controllers {
                     SetMouseItemAction(itemView);
                     TryTakeOrLook(itemView);
                 }
-                else if (Input.GetMouseButtonUp(0) && TryItemViewInteract(hit)) {
+                else if (Input.GetMouseButtonUp(0) && TrySlotToViewInteract(hit)) {
                         Debug.Log("Inventory item interacted with view");
                         return;    
                 }
@@ -54,6 +54,10 @@ namespace Controllers {
                 ItemAction.text = string.Empty;
         }
 
+		private bool IsInventoryInteraction() {
+			return SlotItem != null;
+		}
+
         private bool TryUsePortal(RaycastHit2D hit) {
             if (!Input.GetMouseButtonDown(0))
                 return false;
@@ -62,7 +66,8 @@ namespace Controllers {
             if (portal == null)
                 return false;
 
-            return portal.TryUsePortal();
+			var stab = new Item(); 
+			return portal.Interact(null, out stab);
         }
 
         private void SetMouseItemAction(ItemView item) {
@@ -114,8 +119,9 @@ namespace Controllers {
             foreach (RaycastResult result in results) {                
                 var otherSlot = result.gameObject.GetComponent<Slot>();
                 if (otherSlot != null && otherSlot.Item != null && otherSlot.Item != SlotItem) {
-                    var combinedItem = otherSlot.Item.Interact(SlotItem);
-                    if (combinedItem != null && InventoryManager.Instance.PutItem(combinedItem)) {
+
+					var combinedItem = new Item();
+					if (otherSlot.Item.Interact(SlotItem, out combinedItem) && InventoryManager.Instance.PutItem(combinedItem)) {
                         InventoryManager.Instance.RemoveItem(otherSlot.Item);
                         InventoryManager.Instance.RemoveItem(SlotItem);
                         return true;
@@ -125,19 +131,27 @@ namespace Controllers {
             return false;
         }
 
-        private bool TryItemViewInteract(RaycastHit2D hit) {
+		private bool TrySlotToViewInteract(RaycastHit2D hit) {
+			var craftedItem = new Item();
             var itemView = hit.collider.GetComponent<ItemView>();
-            if (itemView != null) {
-				var craftItem = itemView.Interact(SlotItem);
-				if (itemView.gameObject.GetComponent<ScenePortal>() == null)
-					itemView.gameObject.SetActive(false);
-				
+
+			if (itemView == null || !itemView.Interact(SlotItem, out craftedItem))
+				return false;     
+
+			if (IsPortal(itemView)) {
 				InventoryManager.Instance.RemoveItem(SlotItem);
-                if (craftItem != null && InventoryManager.Instance.PutItem(craftItem)) {
-                    return true;
-                }
+				return true;
+			}
+			
+			if (craftedItem != null && InventoryManager.Instance.PutItem(craftedItem)) {
+				InventoryManager.Instance.RemoveItem(SlotItem);
             }
-            return false;
+			
+			return true;
         }
+
+		private bool IsPortal(ItemView item) {
+			return item is ScenePortal;
+		}
     }
 }

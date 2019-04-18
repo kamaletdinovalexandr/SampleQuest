@@ -8,23 +8,21 @@ public class ScenePortal : ItemView {
     public PortalState PortalState = PortalState.closed;
     public string SceneToLoad;
 
-    public override Item Interact(Item item) {
-         if (PortalState == PortalState.closed && item.Name == InputItemName) {
+    public override bool Interact(Item item, out Item craftedItem) {
+		if (PortalState == PortalState.open) {
+			SceneLoader.Instance.ChangeLocation(SceneToLoad);
+			craftedItem = null;
+			return true;
+		}
+
+		if (PortalState == PortalState.closed && item != null && item.Name == InputItemName)  {
             PortalState = PortalState.open;
             GetComponent<SpriteRenderer>().sprite = CraftedItemIcon;
+			craftedItem = null;
+			return true;
          }
-              
-        return null;
-    }
 
-    public bool TryUsePortal() {
-        if (PortalState == PortalState.open) {
-			SceneLoader.Instance.ChangeLocation(SceneToLoad);
-            return true;
-        }
-        
+		craftedItem = null;
         return false;
     }
-
-
 }
