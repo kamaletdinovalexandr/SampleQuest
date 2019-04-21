@@ -16,8 +16,6 @@ namespace Controllers {
         [SerializeField] private Text ItemAction;
         public Item SlotItem;
 
-        PointerEventData _PointerEventData;
-
         private void Start() {
             InitText();
         }
@@ -28,47 +26,31 @@ namespace Controllers {
         }
 
         private void FixedUpdate() {
-            var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit) {
-                if (!IsInventoryInteraction()) {
-                    if (TryUsePortal(hit))
-                        return;
+			var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+			if (hit) {
+				if (TrySlotToViewInteract(hit)) {
+					return;
+				}
 
-                    var itemView = hit.collider.GetComponent<ItemView>();
-                    if (itemView == null)
-                        return;
+				SetMouseOverMessage(hit);
+				return;
+			}
 
-                    SetMouseItemAction(itemView);
-                    TryTakeOrLook(itemView);
-                }
-                else if (Input.GetMouseButtonUp(0) && TrySlotToViewInteract(hit)) {
-                        Debug.Log("Inventory item interacted with view");
-                        return;    
-                }
-            }
-            else if (Input.GetMouseButtonUp(0) && TrySlotInteract()) {
-                Debug.Log("Inventory item interacted with slot");
-                return;
-            }
-            else                                    
-                ItemAction.text = string.Empty;
+			if (TrySlotToSlotInteract()) {
+				return;
+			}
+
+			ItemAction.text = string.Empty;
         }
 
-		private bool IsInventoryInteraction() {
-			return SlotItem != null;
+		private void SetMouseOverMessage(RaycastHit2D hit) {
+			var itemView = hit.collider.GetComponent<ItemView>();
+			if (itemView == null)
+				return;
+
+			SetMouseItemAction(itemView);
+			TryTakeOrLook(itemView);
 		}
-
-        private bool TryUsePortal(RaycastHit2D hit) {
-            if (!Input.GetMouseButtonDown(0))
-                return false;
-
-            var portal = hit.collider.GetComponent<ScenePortal>();
-            if (portal == null)
-                return false;
-
-			var stab = new Item(); 
-			return portal.Interact(null, out stab);
-        }
 
         private void SetMouseItemAction(ItemView item) {
             if (item.IsTakable) {
@@ -76,13 +58,6 @@ namespace Controllers {
             } 
             else {
                 ItemAction.text = "Look at the " + item.name;
-            }
-        }
-
-        private void SetInventryItemAction(RaycastHit2D hit) {
-            var itemView = hit.collider.GetComponent<ItemView>();
-            if (itemView != null) {
-
             }
         }
 
@@ -110,8 +85,11 @@ namespace Controllers {
             return false;
         }
 
-        private bool TrySlotInteract() {
-            var pointerEventData = new PointerEventData(_EventSystem);
+        private bool TrySlotToSlotInteract() {
+			if (!Input.GetMouseButtonUp(0))
+				return false;
+
+			var pointerEventData = new PointerEventData(_EventSystem);
             pointerEventData.position = Input.mousePosition;
             List<RaycastResult> results = new List<RaycastResult>();
             _raycaster.Raycast(pointerEventData, results);
@@ -132,6 +110,9 @@ namespace Controllers {
         }
 
 		private bool TrySlotToViewInteract(RaycastHit2D hit) {
+			if (!Input.GetMouseButtonUp(0))
+				return false;
+
 			var craftedItem = new Item();
             var itemView = hit.collider.GetComponent<ItemView>();
 
