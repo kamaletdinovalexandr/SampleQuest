@@ -135,23 +135,22 @@ namespace Controllers {
 			var craftedItem = new Item();
             var itemView = hit.collider.GetComponent<ItemView>();
 
-			if (itemView == null || !itemView.Interact(SlotItem, out craftedItem))
-				return false;     
+			if (itemView == null)
+				return false;
 
-			if (IsPortal(itemView)) {
+            if (itemView.Interact(SlotItem, out craftedItem)) {
 				InventoryManager.Instance.RemoveItem(SlotItem);
-				return true;
 			}
-			
-			if (craftedItem != null && InventoryManager.Instance.PutItem(craftedItem)) {
-				InventoryManager.Instance.RemoveItem(SlotItem);
+
+            if (!IsItemEmpty(craftedItem)) {
+                InventoryManager.Instance.PutItem(craftedItem);
             }
 			
 			return true;
         }
 
-		private bool IsPortal(ItemView item) {
-			return item is ScenePortal;
-		}
+        private bool IsItemEmpty(Item item) {
+            return item == null ||  item.Name == "";
+        }
     }
 }

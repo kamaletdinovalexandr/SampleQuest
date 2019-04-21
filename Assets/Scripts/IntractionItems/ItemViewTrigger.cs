@@ -9,26 +9,31 @@ public class ItemViewTrigger : ItemView {
 	[SerializeField] private TriggerAction SelfAction;
     
 	public override bool Interact(Item item, out Item craftedItem) {
-		if (item.Name != InputItemName) {
-			craftedItem = null;
-			return false;
-		}
-		
-		foreach (var target in Targets) {
-			switch (target.TriggerAction) {
-				case TriggerAction.enable:
-					target.gameObject.SetActive(true);
-					break;
-				case TriggerAction.disable:
-					target.gameObject.SetActive(false);
-					break;
-			}
+        if (GetItem().Interact(item, out craftedItem)) {
+            SetAfterInteractionState();
+            SetSelfState();
+
+            return true;
 		}
 
-		if (SelfAction == TriggerAction.disable)
-			gameObject.SetActive(false);
-
-		craftedItem = GetItem();
-		return true;
+        return false;
 	}
+
+    private void SetAfterInteractionState() {
+        foreach (var target in Targets) {
+            switch (target.TriggerAction) {
+                case TriggerAction.enable:
+                    target.gameObject.SetActive(true);
+                    break;
+                case TriggerAction.disable:
+                    target.gameObject.SetActive(false);
+                    break;
+            }
+        }
+    }
+
+    private void SetSelfState() {
+        if (SelfAction == TriggerAction.disable)
+            gameObject.SetActive(false);
+    }
 }
