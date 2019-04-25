@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using CameraExtention;
 
 public class SceneLoader : MBSingleton<SceneLoader> {
     [SerializeField] private string StartSceneName;
@@ -20,10 +18,10 @@ public class SceneLoader : MBSingleton<SceneLoader> {
     }
 
     private void OnEnable() {
-	    SceneManager.sceneLoaded += CameraSizeController.ResizeCamera;
+	    SceneManager.sceneLoaded += CameraSizeAdjuster.ResizeCamera;
     }
 
     private void OnDisable() {
-	    SceneManager.sceneLoaded -= CameraSizeController.ResizeCamera;
+	    SceneManager.sceneLoaded -= CameraSizeAdjuster.ResizeCamera;
     }
 }
