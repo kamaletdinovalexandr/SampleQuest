@@ -40,7 +40,7 @@ namespace Controllers {
 				return;
 			}
 
-			ItemAction.text = string.Empty;
+			//ItemAction.text = string.Empty;
         }
 
 		private void SetMouseOverMessage(RaycastHit2D hit) {
@@ -86,9 +86,6 @@ namespace Controllers {
         }
 
         private bool TrySlotToSlotInteract() {
-			if (!Input.GetMouseButtonUp(0))
-				return false;
-
 			var pointerEventData = new PointerEventData(_EventSystem);
             pointerEventData.position = Input.mousePosition;
             List<RaycastResult> results = new List<RaycastResult>();
@@ -97,11 +94,17 @@ namespace Controllers {
             foreach (RaycastResult result in results) {                
                 var otherSlot = result.gameObject.GetComponent<Slot>();
                 if (otherSlot != null && otherSlot.Item != null && otherSlot.Item != SlotItem) {
-
+                    ItemAction.text = "Use with " + otherSlot.Item.Name;
+                    
 					var combinedItem = new Item();
-					if (otherSlot.Item.Interact(SlotItem, out combinedItem) && InventoryManager.Instance.PutItem(combinedItem)) {
+					if (Input.GetMouseButtonUp(0) && otherSlot.Item.Interact(SlotItem, out combinedItem) && InventoryManager.Instance.PutItem(combinedItem)) {
                         InventoryManager.Instance.RemoveItem(otherSlot.Item);
                         InventoryManager.Instance.RemoveItem(SlotItem);
+                        if (combinedItem != null) {
+                            Message.text = "You picked a " + combinedItem.Name;
+                        }
+
+                        ItemAction.text = "";
                         return true;
                     }
                 }
