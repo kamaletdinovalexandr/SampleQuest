@@ -169,9 +169,11 @@ namespace Controllers {
                 UIController.Instance.SetMessage("You picked a " + craftedItem.Name);
                 InventoryManager.Instance.PutItem(craftedItem);
             }
+            else {
+                UIController.Instance.ClearMessage();
+            }
             UIController.Instance.ClearAction();
-            UIController.Instance.ClearMessage();
-			return true;
+            return true;
         }
 
         private bool IsItemEmpty(Item item) {
