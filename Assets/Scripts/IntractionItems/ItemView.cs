@@ -16,13 +16,14 @@ namespace Items {
         public string InputItemName;
         public string CraftedItemName;
         public Sprite CraftedItemIcon;
+        public string CraftedItemDeskription;
 
         public void Awake() {
             Icon = GetComponent<SpriteRenderer>().sprite;
         }
 
         public Item GetItem() { 
-            return new Item(Name, Icon, Description, InputItemName, CraftedItemName, CraftedItemIcon);
+            return new Item(Name, Icon, Description, InputItemName, CraftedItemName, CraftedItemIcon, CraftedItemDeskription);
         }
 
 		public virtual bool Interact(Item item, out Item craftedItem) {
