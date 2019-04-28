@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,74 +13,115 @@ namespace Controllers {
         [SerializeField] private Camera _camera;
         [SerializeField] private GraphicRaycaster _raycaster;
         [SerializeField] private EventSystem _EventSystem;
-        [SerializeField] private Text Message;
-        [SerializeField] private Text ItemAction;
         public Item SlotItem;
-
-        private void Start() {
-            InitText();
-        }
-
-        private void InitText() {
-            Message.text = string.Empty;
-            ItemAction.text = string.Empty;
-        }
-
+        
         private void FixedUpdate() {
-			var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-			if (hit) {
-				if (TrySlotToViewInteract(hit)) {
-					return;
-				}
+            ItemView itemView = null;
+            var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+            if (hit) {
+                itemView = hit.collider.GetComponent<ItemView>();
+            }
+            
+            if (itemView != null && TryUsePortal(itemView))
+                return;
 
-				SetMouseOverMessage(hit);
-				return;
-			}
+            if (IsInventoryInteraction()) {
+                if (itemView != null && TrySlotToViewInteract(itemView)) {
+                    return;
+                }
 
-			if (TrySlotToSlotInteract()) {
-				return;
-			}
+                if (TrySlotToSlotInteract()) {
+                    return;
+                }
+            }
+            
+            if (!IsInventoryInteraction()) {
+                if (itemView != null) {
+                    SetMouseItemAction(itemView);
+                    TryTakeOrLook(itemView);
+                    return;
+                }
 
-			//ItemAction.text = string.Empty;
+                if (TryGetSlotItemDescription()) {
+                    return;
+                }
+
+                if (itemView == null)
+                    UIController.Instance.ClearAction();
+            }
         }
 
-		private void SetMouseOverMessage(RaycastHit2D hit) {
-			var itemView = hit.collider.GetComponent<ItemView>();
-			if (itemView == null)
-				return;
+        private bool TryUsePortal(ItemView item) {
+            Item craftedItem;
+            if (Input.GetMouseButtonDown(0) && item is ScenePortal) {
+                if (item.Interact(new Item(), out craftedItem)) {
+                    UIController.Instance.ClearAction();
+                    UIController.Instance.ClearMessage();
+                    return true;
+                }
+            }
+            return false;
+        }
 
-			SetMouseItemAction(itemView);
-			TryTakeOrLook(itemView);
-		}
+        private bool TryGetSlotItemDescription() {
+            var pointerEventData = new PointerEventData(_EventSystem);
+            pointerEventData.position = Input.mousePosition;
+            List<RaycastResult> results = new List<RaycastResult>();
+            _raycaster.Raycast(pointerEventData, results);
 
+            foreach (RaycastResult result in results) {                
+                var slot = result.gameObject.GetComponent<Slot>();
+                if (slot != null && slot.Item != null) {
+                    UIController.Instance.SetItemAction("Look at " + slot.Item.Name);
+
+                    if (Input.GetMouseButtonDown(0)) {
+                        UIController.Instance.SetMessage(slot.Item.Description);
+                        UIController.Instance.ClearAction();
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        private bool IsInventoryInteraction() {
+            return SlotItem != null;
+        }
+        
         private void SetMouseItemAction(ItemView item) {
+            string message;
             if (item.IsTakable) {
-                ItemAction.text = "Take the " + item.name;
+                message = "Take the " + item.name;
             } 
             else {
-                ItemAction.text = "Look at the " + item.name;
+                if (item is ScenePortal) 
+                    message = "Use door";
+                else 
+                    message = "Look at the " + item.name;
             }
+            UIController.Instance.SetItemAction(message);
         }
 
         private bool TryTakeOrLook(ItemView item) {
+            if (!Input.GetMouseButtonDown(0))
+                return false;
+            
             if (item.IsTakable) {
-                if (Input.GetMouseButtonDown(0) && TakeInteraction(item.GetItem())) {
+                if (TakeInteraction(item.GetItem())) {
                     item.gameObject.SetActive(false);
-                    return true;
-                }                  
-            }
-            else {
-                if (Input.GetMouseButtonDown(0)) {
-                    Message.text = item.Description;
+                    UIController.Instance.ClearAction();
                     return true;
                 }
-            }   
-            return false; 
+
+                return false;
+            }
+            UIController.Instance.SetMessage(item.Description);
+            return true;
         }
 
         private bool TakeInteraction(Item item) {
             if (InventoryManager.Instance.PutItem(item)) {
-                Message.text = "You took the " + item.Name;
+                UIController.Instance.SetMessage("You took the " + item.Name);
                 return true;
             }
             return false;
@@ -94,17 +136,17 @@ namespace Controllers {
             foreach (RaycastResult result in results) {                
                 var otherSlot = result.gameObject.GetComponent<Slot>();
                 if (otherSlot != null && otherSlot.Item != null && otherSlot.Item != SlotItem) {
-                    ItemAction.text = "Use with " + otherSlot.Item.Name;
+                    UIController.Instance.SetItemAction("Use with " + otherSlot.Item.Name);
                     
 					var combinedItem = new Item();
 					if (Input.GetMouseButtonUp(0) && otherSlot.Item.Interact(SlotItem, out combinedItem) && InventoryManager.Instance.PutItem(combinedItem)) {
                         InventoryManager.Instance.RemoveItem(otherSlot.Item);
                         InventoryManager.Instance.RemoveItem(SlotItem);
                         if (combinedItem != null) {
-                            Message.text = "You picked a " + combinedItem.Name;
+                            UIController.Instance.SetMessage("You picked a " + combinedItem.Name);
                         }
 
-                        ItemAction.text = "";
+                        UIController.Instance.ClearAction();
                         return true;
                     }
                 }
@@ -112,29 +154,28 @@ namespace Controllers {
             return false;
         }
 
-		private bool TrySlotToViewInteract(RaycastHit2D hit) {
+		private bool TrySlotToViewInteract(ItemView item) {
+            UIController.Instance.SetItemAction("Use " + SlotItem.Name + " with " + item.Name);
+            
 			if (!Input.GetMouseButtonUp(0))
 				return false;
 
 			var craftedItem = new Item();
-            var itemView = hit.collider.GetComponent<ItemView>();
-
-			if (itemView == null)
-				return false;
-
-            if (itemView.Interact(SlotItem, out craftedItem)) {
+            if (item.Interact(SlotItem, out craftedItem)) {
 				InventoryManager.Instance.RemoveItem(SlotItem);
 			}
 
             if (!IsItemEmpty(craftedItem)) {
+                UIController.Instance.SetMessage("You picked a " + craftedItem.Name);
                 InventoryManager.Instance.PutItem(craftedItem);
             }
-			
+            UIController.Instance.ClearAction();
+            UIController.Instance.ClearMessage();
 			return true;
         }
 
         private bool IsItemEmpty(Item item) {
-            return item == null ||  item.Name == "";
+            return item == null ||  item.Name == String.Empty;
         }
     }
 }
