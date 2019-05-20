@@ -5,3 +5,6 @@ Temp/
 .vscode/
 obj/
 .vs/
+.idea/
+Assets/Plugins/
+Assets/Plugins.meta

@@ -10,8 +10,8 @@ namespace Inventory {
     public class Slot : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler {
 
         [SerializeField] private Image _icon;
-        public Item Item { get; private set; }
-        public bool IsEmpty = true;
+        public Item Item;
+        public bool IsEmpty { get { return Item == null; } }
         private Vector2 _iconPosition;
 
         private void Awake() {
@@ -23,19 +23,17 @@ namespace Inventory {
             Item = item;
             _icon.enabled = true;
             _icon.sprite = item.Icon;
-            IsEmpty = false;
         }
 
         public void ClearItem() {
             Item = null;
             _icon.sprite = null;
             _icon.enabled = false;
-            IsEmpty = true;
         }
 
         public void OnBeginDrag(PointerEventData eventData) {
             _iconPosition = transform.localPosition;
-            InteractionController.Instance.InventryInteraction = true;
+            InteractionController.Instance.SlotItem = Item;
         }
 
         public void OnDrag(PointerEventData eventData) {
@@ -43,9 +41,8 @@ namespace Inventory {
         }
 
         public void OnEndDrag(PointerEventData eventData) {
-            InteractionController.Instance.InventoryInteract(Item);
             transform.localPosition = _iconPosition;
-            InteractionController.Instance.InventryInteraction = false;
-        }  
+            InteractionController.Instance.SlotItem = null;
+        }
     }
 }

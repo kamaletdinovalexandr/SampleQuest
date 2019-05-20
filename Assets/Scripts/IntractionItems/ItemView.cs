@@ -4,32 +4,37 @@ using UnityEngine;
 using Controllers;
 
 namespace Items {
-    public class BaseItem : MonoBehaviour {
+    public class ItemView : MonoBehaviour {
 
         [Header("Item properties")]
         public string Name;
         public string Description;
-        public Sprite Icon;
-        public bool isTakable;
+        private Sprite Icon;
+        public bool IsTakable;
         [Space]
         [Header("Crafting area")]
         public string InputItemName;
         public string CraftedItemName;
         public Sprite CraftedItemIcon;
+        public string CraftedItemDeskription;
 
         public void Awake() {
             Icon = GetComponent<SpriteRenderer>().sprite;
         }
 
         public Item GetItem() { 
-            return new Item(Name, Icon, Description, isTakable);
+            return new Item(Name, Icon, Description, InputItemName, CraftedItemName, CraftedItemIcon, CraftedItemDeskription);
         }
 
-        public virtual Item Interact(Item item) {
-            if (item.Name == InputItemName) {
-                return new Item(CraftedItemName, CraftedItemIcon, "", true);
-            }
-            return null;
+		public virtual bool Interact(Item item, out Item craftedItem) {
+			if (!GetItem().Interact(item, out craftedItem))
+				return false;
+
+			if (IsTakable) {
+				gameObject.SetActive(false);
+			}
+
+			return true;
         }  
     }
 }

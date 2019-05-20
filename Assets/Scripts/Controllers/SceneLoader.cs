@@ -1,20 +1,27 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using CameraExtention;
 
 public class SceneLoader : MBSingleton<SceneLoader> {
     [SerializeField] private string StartSceneName;
+	private string _currentScene;
 
 	void Start () {
-        ChangeLocation(StartSceneName);
+		SceneManager.LoadScene(StartSceneName, LoadSceneMode.Additive);
+		_currentScene = StartSceneName;
     }
 
     public void ChangeLocation(string location) {
-        SceneManager.LoadScene(location, LoadSceneMode.Additive);
+		SceneManager.UnloadSceneAsync(_currentScene);
+		SceneManager.LoadScene(location, LoadSceneMode.Additive);
+		_currentScene = location;
     }
 
-    public void UnloadScene(string location) {
-        SceneManager.UnloadScene(location);
+    private void OnEnable() {
+	    SceneManager.sceneLoaded += CameraSizeAdjuster.ResizeCamera;
+    }
+
+    private void OnDisable() {
+	    SceneManager.sceneLoaded -= CameraSizeAdjuster.ResizeCamera;
     }
 }
