@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using InputModule;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
+
 using Items;
 using Inventory;
 
 namespace Controllers {
     public class InteractionController : MBSingleton<InteractionController> {
-
-        [SerializeField] private Camera _camera;
-        [SerializeField] private GraphicRaycaster _raycaster;
-        [SerializeField] private EventSystem _EventSystem;
+        
         public Item SlotItem;
         
         private void FixedUpdate() {
             ItemView itemView = null;
-            var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+            var hit = Raycaster.Instance.Hit;
             if (hit) {
                 itemView = hit.collider.GetComponent<ItemView>();
             }
@@ -64,22 +61,19 @@ namespace Controllers {
         }
 
         private bool TryGetSlotItemDescription() {
-            var pointerEventData = new PointerEventData(_EventSystem);
-            pointerEventData.position = Input.mousePosition;
-            List<RaycastResult> results = new List<RaycastResult>();
-            _raycaster.Raycast(pointerEventData, results);
+            var hitUI = Raycaster.Instance.HitUI;
+            if (hitUI.gameObject == null)
+                return false;
+            
+            var slot = hitUI.gameObject.GetComponent<Slot>();
+            if (slot != null && slot.Item != null) {
+                UIController.Instance.SetItemAction("Look at " + slot.Item.Name);
 
-            foreach (RaycastResult result in results) {                
-                var slot = result.gameObject.GetComponent<Slot>();
-                if (slot != null && slot.Item != null) {
-                    UIController.Instance.SetItemAction("Look at " + slot.Item.Name);
-
-                    if (Input.GetMouseButtonDown(0)) {
-                        UIController.Instance.SetMessage(slot.Item.Description);
-                        UIController.Instance.ClearAction();
-                    }
-                    return true;
+                if (Input.GetMouseButtonDown(0)) {
+                    UIController.Instance.SetMessage(slot.Item.Description);
+                    UIController.Instance.ClearAction();
                 }
+                return true;
             }
             return false;
         }
@@ -128,29 +122,27 @@ namespace Controllers {
         }
 
         private bool TrySlotToSlotInteract() {
-			var pointerEventData = new PointerEventData(_EventSystem);
-            pointerEventData.position = Input.mousePosition;
-            List<RaycastResult> results = new List<RaycastResult>();
-            _raycaster.Raycast(pointerEventData, results);
-
-            foreach (RaycastResult result in results) {                
-                var otherSlot = result.gameObject.GetComponent<Slot>();
-                if (otherSlot != null && otherSlot.Item != null && otherSlot.Item != SlotItem) {
-                    UIController.Instance.SetItemAction("Use with " + otherSlot.Item.Name);
-                    
-					var combinedItem = new Item();
-					if (Input.GetMouseButtonUp(0) && otherSlot.Item.Interact(SlotItem, out combinedItem) && InventoryManager.Instance.PutItem(combinedItem)) {
-                        InventoryManager.Instance.RemoveItem(otherSlot.Item);
-                        InventoryManager.Instance.RemoveItem(SlotItem);
-                        if (combinedItem != null) {
-                            UIController.Instance.SetMessage("You picked a " + combinedItem.Name);
-                        }
-
-                        UIController.Instance.ClearAction();
-                        return true;
+            var hitUI = Raycaster.Instance.HitUI;
+            if (hitUI.gameObject == null)
+                return false; 
+            
+            var otherSlot = hitUI.gameObject.GetComponent<Slot>();
+            if (otherSlot != null && otherSlot.Item != null && otherSlot.Item != SlotItem) {
+                UIController.Instance.SetItemAction("Use with " + otherSlot.Item.Name);
+                
+				var combinedItem = new Item();
+				if (Input.GetMouseButtonUp(0) && otherSlot.Item.Interact(SlotItem, out combinedItem) && InventoryManager.Instance.PutItem(combinedItem)) {
+                    InventoryManager.Instance.RemoveItem(otherSlot.Item);
+                    InventoryManager.Instance.RemoveItem(SlotItem);
+                    if (combinedItem != null) {
+                        UIController.Instance.SetMessage("You picked a " + combinedItem.Name);
                     }
+
+                    UIController.Instance.ClearAction();
+                    return true;
                 }
             }
+            
             return false;
         }
 
