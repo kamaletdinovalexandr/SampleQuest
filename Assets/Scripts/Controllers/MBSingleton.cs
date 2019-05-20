@@ -11,8 +11,8 @@ public class MBSingleton<T> : MonoBehaviour where T : MonoBehaviour {
 			if (_instance == null) {
 				_instance = (T)FindObjectOfType(typeof(T));
 				if (_instance == null) {
-					var go = new GameObject();
-					_instance = go.AddComponent<T>();
+					Debug.LogError(typeof(T) + "is null");
+					Application.Quit();
 				}
 			}
 			return _instance;
