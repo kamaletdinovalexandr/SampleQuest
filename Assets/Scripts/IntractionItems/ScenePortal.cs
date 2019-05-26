@@ -3,26 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 using Items;
 
-public class ScenePortal : ItemView {
+public class ScenePortal : MonoBehaviour {
 
     public PortalState PortalState = PortalState.closed;
-    public string SceneToLoad;
+	public string InputItemName;
+	public string SceneToLoad;
 
-    public override bool Interact(Item item, out Item craftedItem) {
+    public bool TryChangeLocation(string itemName) {
 		if (PortalState == PortalState.open) {
 			SceneLoader.Instance.ChangeLocation(SceneToLoad);
-			craftedItem = null;
 			return true;
 		}
 
-		if (PortalState == PortalState.closed && item != null && item.Name == InputItemName)  {
+		if (PortalState == PortalState.closed && !string.IsNullOrEmpty(itemName) && itemName == InputItemName)  {
             PortalState = PortalState.open;
-            GetComponent<SpriteRenderer>().sprite = CraftedItemIcon;
-			craftedItem = null;
 			return true;
          }
-
-		craftedItem = null;
         return false;
     }
 }

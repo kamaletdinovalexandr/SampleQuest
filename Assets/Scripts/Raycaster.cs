@@ -4,6 +4,8 @@ using UnityEngine.EventSystems;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Items;
+using Inventory;
 
 namespace InputModule {
     public class Raycaster : MBSingleton<Raycaster> {
@@ -11,28 +13,32 @@ namespace InputModule {
         [SerializeField] private GraphicRaycaster _raycaster;
         [SerializeField] private EventSystem _EventSystem;
         
-        public RaycastHit2D Hit { get; private set; }
-        public RaycastResult HitUI { get; private set; }
         private PointerEventData _pointerEventData;
+		public GameObject HitObject { get; private set; }
 
-        private void Awake() {
+		private void Awake() {
             _pointerEventData = new PointerEventData(_EventSystem);
         }
 
         public void Update() {
-            Hit = GetPhisicHit();
-            HitUI = GetUIHit();
+			HitObject = null;
+			TryGetItemInGameWorld();
+			TryGetItemInUI();        
         }
 
-        private RaycastResult GetUIHit() {
+        private void TryGetItemInUI() {
             _pointerEventData.position = Input.mousePosition;
             var results = new List<RaycastResult>();
             _raycaster.Raycast(_pointerEventData, results);
-            return results.FirstOrDefault();
+			HitObject = results.FirstOrDefault().gameObject;
         }
 
-        private static RaycastHit2D GetPhisicHit() {
-            return Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+        private void TryGetItemInGameWorld() {
+            var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+			if (!hit)
+				return;
+
+			HitObject = hit.transform.gameObject;
         }
     }
 }
