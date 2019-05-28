@@ -1,24 +1,27 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Items;
+﻿using UnityEngine;
 
-public class ScenePortal : MonoBehaviour {
+namespace Items {
+	public class ScenePortal : MonoBehaviour {
 
-    public PortalState PortalState = PortalState.closed;
-	public string InputItemName;
-	public string SceneToLoad;
+		private PortalState PortalState = PortalState.closed;
+		public string InputItemName;
+		public string SceneToLoad;
 
-    public bool TryChangeLocation(string itemName) {
-		if (PortalState == PortalState.open) {
-			SceneLoader.Instance.ChangeLocation(SceneToLoad);
-			return true;
+		public bool isOpened { get { return PortalState == PortalState.open; }
+		}
+		public bool TryOpenPortal(string itemName) {
+			if (PortalState == PortalState.closed && !string.IsNullOrEmpty(itemName) && itemName == InputItemName)  {
+				PortalState = PortalState.open;
+				return true;
+			}
+		
+			return false;
 		}
 
-		if (PortalState == PortalState.closed && !string.IsNullOrEmpty(itemName) && itemName == InputItemName)  {
-            PortalState = PortalState.open;
-			return true;
-         }
-        return false;
-    }
+		public void UsePortal() {
+			if (PortalState == PortalState.open) {
+				SceneLoader.Instance.ChangeLocation(SceneToLoad);
+			}
+		}
+	}
 }

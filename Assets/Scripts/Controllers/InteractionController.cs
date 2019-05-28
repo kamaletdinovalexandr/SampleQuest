@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using InputModule;
 using UnityEngine;
 using Items;
@@ -11,50 +9,57 @@ namespace Controllers {
         
         public Item SlotItem;
         
-        private void Update() {
-			if (Raycaster.Instance.HitObject == null) {
-				UIController.Instance.SetItemAction(string.Empty);
-				return;
-			}
-
-			SetMouseItemAction(Raycaster.Instance.HitObject);
-
-			if (Input.GetMouseButtonUp(0)) {
-
-				if (TryUsePortal(Raycaster.Instance.HitObject))
-					return;
-
-				if (IsInventoryInteraction())
-					TrySlotToSlotInteract(Raycaster.Instance.HitObject);
-				else 
-					TrySlotToViewInteract(Raycaster.Instance.HitObject);
-
-				return;
-			}
-		}
-
-        private bool TryUsePortal(GameObject go) {
-			var portal = go.GetComponent<ScenePortal>();
-			if (portal == null)
-				return false;
-                if (portal.TryChangeLocation(string.Empty)) {
-                    UIController.Instance.ClearAction();
-                    UIController.Instance.ClearMessage();
-                    return true;
-                }
+        private void FixedUpdate() {
+            if (Raycaster.Instance.HitObject == null) {
+                ClearItemAction();
+                return;
+            }
             
+            SetMouseOverAction();
+
+            if (!Input.GetMouseButtonUp(0))
+                return;
+
+            if (TryUsePortal()) {
+                ClearInteractionStatus();
+                return;
+            } 
+            
+            if (IsInventoryInteraction()) {
+                TryOpenPortal();
+                TrySlotToViewInteract();
+                TrySlotToSlotInteract();
+            } else {
+                TryGetSlotItemDescription(); 
+                TryTakeOrLook();
+            }
+        }
+
+        private void TryOpenPortal() {
+            var portal = Raycaster.Instance.HitObject.GetComponent<ScenePortal>();
+            if (portal == null || portal.isOpened) 
+                return;
+            
+            portal.TryOpenPortal(SlotItem.Name);
+        }
+
+        private bool TryUsePortal() {
+            var portal = Raycaster.Instance.HitObject.GetComponent<ScenePortal>();
+            if (portal != null && portal.isOpened) {
+                portal.UsePortal();
+                return true;
+                
+            }
             return false;
         }
 
-        private bool TryGetSlotItemDescription(GameObject go) {
-        	var slot = go.GetComponent<Slot>();
+        private bool TryGetSlotItemDescription() {
+            var slot = Raycaster.Instance.HitObject.GetComponent<Slot>();
             if (slot != null && slot.Item != null) {
-                UIController.Instance.SetItemAction("Look at " + slot.Item.Name);
-
-                if (Input.GetMouseButtonDown(0)) {
-                    UIController.Instance.SetMessage(slot.Item.Description);
-                    UIController.Instance.ClearAction();
-                }
+                SetItemAction("Look at " + slot.Item.Name);
+                SetInteractionStatus(slot.Item.Description);
+                ClearItemAction();
+                
                 return true;
             }
             return false;
@@ -64,59 +69,76 @@ namespace Controllers {
             return SlotItem != null;
         }
         
-        private void SetMouseItemAction(GameObject go) {
-			var portal = go.GetComponent<ScenePortal>();
-			if (portal != null) {
-				UIController.Instance.SetItemAction("Use door");
-				return;
-			}
+        private void SetMouseOverAction() {
+            var portal = Raycaster.Instance.HitObject.GetComponent<ScenePortal>();
+            if (portal != null) {
+                SetItemAction("Use door");
+                return;
+            }
+            
+            var slot = Raycaster.Instance.HitObject.GetComponent<Slot>();
+            if (slot != null && !slot.IsEmpty) {
+                SetItemAction("Look at the " + slot.Item.Name);
+                return;
+            }
 
-			var item = go.GetComponent<ItemView>();
-			if (item != null) {
-				var message = item.IsTakable ? "Take the " : "Look at the ";
-				UIController.Instance.SetItemAction(message + item.name);
+            var item = Raycaster.Instance.HitObject.GetComponent<ItemView>();
+            if (item == null) {
+                return;
+            }
+            
+            if (item.IsTakable) {
+                SetItemAction("Take the " + item.name);
             } 
+            else {
+                SetItemAction("Look at the " + item.name);
+            }
         }
 
-        private bool TryTakeOrLook(ItemView item) {
-            if (!Input.GetMouseButtonDown(0))
+        private bool TryTakeOrLook() {
+            var item = Raycaster.Instance.HitObject.GetComponent<ItemView>();
+            if (item == null)
                 return false;
             
             if (item.IsTakable) {
                 if (TakeInteraction(item.GetItem())) {
                     item.gameObject.SetActive(false);
-                    UIController.Instance.ClearAction();
+                    ClearItemAction();
                     return true;
                 }
 
                 return false;
             }
-
-            UIController.Instance.SetMessage(item.Description);
+            SetInteractionStatus(item.Description);
             return true;
         }
 
         private bool TakeInteraction(Item item) {
             if (InventoryManager.Instance.PutItem(item)) {
-                UIController.Instance.SetMessage("You took the " + item.Name);
+                SetInteractionStatus("You took the " + item.Name);
                 return true;
             }
             return false;
         }
 
-        private bool TrySlotToSlotInteract(GameObject go) {
-			var otherSlot = go.gameObject.GetComponent<Slot>();
+        private bool TrySlotToSlotInteract() {
+            var go = Raycaster.Instance.HitObject;
+            if (go == null)
+                return false; 
+            
+            var otherSlot = go.gameObject.GetComponent<Slot>();
             if (otherSlot != null && otherSlot.Item != null && otherSlot.Item != SlotItem) {
-                UIController.Instance.SetItemAction("Use with " + otherSlot.Item.Name);               
+                SetItemAction("Use with " + otherSlot.Item.Name);
+                
 				var combinedItem = new Item();
 				if (Input.GetMouseButtonUp(0) && otherSlot.Item.Interact(SlotItem, out combinedItem) && InventoryManager.Instance.PutItem(combinedItem)) {
                     InventoryManager.Instance.RemoveItem(otherSlot.Item);
                     InventoryManager.Instance.RemoveItem(SlotItem);
                     if (combinedItem != null) {
-                        UIController.Instance.SetMessage("You picked a " + combinedItem.Name);
+                        SetInteractionStatus("You picked a " + combinedItem.Name);
                     }
 
-                    UIController.Instance.ClearAction();
+                    ClearItemAction();
                     return true;
                 }
             }
@@ -124,28 +146,49 @@ namespace Controllers {
             return false;
         }
 
-		private bool TrySlotToViewInteract(GameObject go) {
-			var item = go.GetComponent<ItemView>();
-            UIController.Instance.SetItemAction("Use " + SlotItem.Name + " with " + item.Name);
+		private bool TrySlotToViewInteract() {
+            var item = Raycaster.Instance.HitObject.GetComponent<ItemView>();
+            if (item == null)
+                return false;
+            
+            SetItemAction("Use " + SlotItem.Name + " with " + item.Name);
 
-			var craftedItem = new Item();
+            var craftedItem = new Item();
             if (item.Interact(SlotItem, out craftedItem)) {
 				InventoryManager.Instance.RemoveItem(SlotItem);
 			}
 
             if (!IsItemEmpty(craftedItem)) {
-                UIController.Instance.SetMessage("You picked a " + craftedItem.Name);
+                SetInteractionStatus("You picked a " + craftedItem.Name);
                 InventoryManager.Instance.PutItem(craftedItem);
             }
             else {
-                UIController.Instance.ClearMessage();
+                ClearInteractionStatus();
             }
-            UIController.Instance.ClearAction();
+            ClearItemAction();
             return true;
         }
 
         private bool IsItemEmpty(Item item) {
             return item == null ||  item.Name == String.Empty;
         }
+
+        private void ClearItemAction() {
+            UIController.Instance.SetItemAction(String.Empty);
+        }
+
+        private void ClearInteractionStatus() {
+            UIController.Instance.SetMessage(String.Empty);
+        }
+
+        private void SetItemAction(string message) {
+            UIController.Instance.SetItemAction(message);
+        }
+        
+        private void SetInteractionStatus(string message) {
+            UIController.Instance.SetMessage(message);
+        }
+        
+        
     }
 }

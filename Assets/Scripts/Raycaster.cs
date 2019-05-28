@@ -22,18 +22,24 @@ namespace InputModule {
 
         public void Update() {
 			HitObject = null;
-			TryGetItemInGameWorld();
-			TryGetItemInUI();        
+			TryGetGOInGameWorld();
+			TryGetGOInUI();        
         }
 
-        private void TryGetItemInUI() {
+        private void TryGetGOInUI() {
             _pointerEventData.position = Input.mousePosition;
             var results = new List<RaycastResult>();
             _raycaster.Raycast(_pointerEventData, results);
-			HitObject = results.FirstOrDefault().gameObject;
+            if (results.Count == 0)
+	            return;
+            
+			var hit = results.First();
+			if (hit.gameObject != null) {
+				HitObject = hit.gameObject;
+			}
         }
 
-        private void TryGetItemInGameWorld() {
+        private void TryGetGOInGameWorld() {
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
 			if (!hit)
 				return;
