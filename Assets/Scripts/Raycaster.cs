@@ -14,14 +14,14 @@ namespace InputModule {
         [SerializeField] private EventSystem _EventSystem;
         
         private PointerEventData _pointerEventData;
-		public GameObject HitObject { get; private set; }
+		public GameObject InteractionObject { get; private set; }
 
 		private void Awake() {
             _pointerEventData = new PointerEventData(_EventSystem);
         }
 
         public void Update() {
-			HitObject = null;
+			InteractionObject = null;
 			TryGetGOInGameWorld();
 			TryGetGOInUI();        
         }
@@ -35,16 +35,14 @@ namespace InputModule {
             
 			var hit = results.First();
 			if (hit.gameObject != null) {
-				HitObject = hit.gameObject;
+				InteractionObject = hit.gameObject;
 			}
         }
 
         private void TryGetGOInGameWorld() {
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-			if (!hit)
-				return;
-
-			HitObject = hit.transform.gameObject;
+			if (hit)
+				InteractionObject = hit.transform.gameObject;
         }
     }
 }
