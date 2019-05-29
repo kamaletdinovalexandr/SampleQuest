@@ -32,6 +32,7 @@ namespace Inventory {
         }
 
         public void OnBeginDrag(PointerEventData eventData) {
+            _icon.raycastTarget = false;
             _iconPosition = transform.localPosition;
             InteractionController.Instance.SlotItem = Item;
         }
@@ -41,6 +42,7 @@ namespace Inventory {
         }
 
         public void OnEndDrag(PointerEventData eventData) {
+            _icon.raycastTarget = true;
             transform.localPosition = _iconPosition;
             InteractionController.Instance.SlotItem = null;
         }
