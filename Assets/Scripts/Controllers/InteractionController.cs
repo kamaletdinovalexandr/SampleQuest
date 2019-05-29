@@ -8,35 +8,34 @@ namespace Controllers {
     public class InteractionController : MBSingleton<InteractionController> {
         
         public Item SlotItem;
-        
-        private void FixedUpdate() {
-            if (Raycaster.Instance.HitObject == null) {
+
+        private void Update() {
+            if (Raycaster.Instance.InteractionObject == null) {
                 ClearItemAction();
                 return;
             }
             
             SetMouseOverAction();
 
-            if (!Input.GetMouseButtonUp(0))
+            if (!Input.GetMouseButtonUp(0)) {
                 return;
+            }
 
-            if (TryUsePortal()) {
-                ClearInteractionStatus();
-                return;
-            } 
-            
+            Debug.Log("Mouse button up");
+            TryUsePortal();
+
             if (IsInventoryInteraction()) {
                 TryOpenPortal();
                 TrySlotToViewInteract();
                 TrySlotToSlotInteract();
             } else {
                 TryGetSlotItemDescription(); 
-                TryTakeOrLook();
+                TryTakeItemView();
             }
         }
 
         private void TryOpenPortal() {
-            var portal = Raycaster.Instance.HitObject.GetComponent<ScenePortal>();
+            var portal = Raycaster.Instance.InteractionObject.GetComponent<ScenePortal>();
             if (portal == null || portal.isOpened) 
                 return;
             
@@ -44,17 +43,19 @@ namespace Controllers {
         }
 
         private bool TryUsePortal() {
-            var portal = Raycaster.Instance.HitObject.GetComponent<ScenePortal>();
+            var portal = Raycaster.Instance.InteractionObject.GetComponent<ScenePortal>();
             if (portal != null && portal.isOpened) {
                 portal.UsePortal();
+                ClearInteractionStatus();
                 return true;
                 
             }
+            SetInteractionStatus("Closed");
             return false;
         }
 
         private bool TryGetSlotItemDescription() {
-            var slot = Raycaster.Instance.HitObject.GetComponent<Slot>();
+            var slot = Raycaster.Instance.InteractionObject.GetComponent<Slot>();
             if (slot != null && slot.Item != null) {
                 SetItemAction("Look at " + slot.Item.Name);
                 SetInteractionStatus(slot.Item.Description);
@@ -70,24 +71,27 @@ namespace Controllers {
         }
         
         private void SetMouseOverAction() {
-            var portal = Raycaster.Instance.HitObject.GetComponent<ScenePortal>();
+            var portal = Raycaster.Instance.InteractionObject.GetComponent<ScenePortal>();
             if (portal != null) {
                 SetItemAction("Use door");
                 return;
             }
             
-            var slot = Raycaster.Instance.HitObject.GetComponent<Slot>();
+            var slot = Raycaster.Instance.InteractionObject.GetComponent<Slot>();
             if (slot != null && !slot.IsEmpty) {
                 SetItemAction("Look at the " + slot.Item.Name);
                 return;
             }
 
-            var item = Raycaster.Instance.HitObject.GetComponent<ItemView>();
+            var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
             if (item == null) {
                 return;
             }
-            
-            if (item.IsTakable) {
+
+            if (IsInventoryInteraction()) {
+                SetItemAction("Use " + SlotItem.Name + " with " + item.Name);
+            }
+            else if (item.IsTakable) {
                 SetItemAction("Take the " + item.name);
             } 
             else {
@@ -95,8 +99,8 @@ namespace Controllers {
             }
         }
 
-        private bool TryTakeOrLook() {
-            var item = Raycaster.Instance.HitObject.GetComponent<ItemView>();
+        private bool TryTakeItemView() {
+            var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
             if (item == null)
                 return false;
             
@@ -122,7 +126,7 @@ namespace Controllers {
         }
 
         private bool TrySlotToSlotInteract() {
-            var go = Raycaster.Instance.HitObject;
+            var go = Raycaster.Instance.InteractionObject;
             if (go == null)
                 return false; 
             
@@ -147,11 +151,9 @@ namespace Controllers {
         }
 
 		private bool TrySlotToViewInteract() {
-            var item = Raycaster.Instance.HitObject.GetComponent<ItemView>();
+            var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
             if (item == null)
                 return false;
-            
-            SetItemAction("Use " + SlotItem.Name + " with " + item.Name);
 
             var craftedItem = new Item();
             if (item.Interact(SlotItem, out craftedItem)) {
