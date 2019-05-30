@@ -39,12 +39,14 @@ namespace Inventory {
 
         public void OnDrag(PointerEventData eventData) {
             _icon.transform.position = Input.mousePosition;
+            InteractionController.Instance.SetInventoryActionMessage();
         }
 
         public void OnEndDrag(PointerEventData eventData) {
+            InteractionController.Instance.InventoryInteract();
+            InteractionController.Instance.SlotItem = null;
             _icon.raycastTarget = true;
             transform.localPosition = _iconPosition;
-            InteractionController.Instance.SlotItem = null;
         }
     }
 }
