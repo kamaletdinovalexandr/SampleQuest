@@ -20,7 +20,7 @@ namespace InputModule {
             _pointerEventData = new PointerEventData(_EventSystem);
         }
 
-        public void Update() {
+        public void UpdateHit() {
 			InteractionObject = null;
 			TryGetGOInGameWorld();
 			TryGetGOInUI();        
