@@ -3,7 +3,7 @@
 namespace Items {
 	public class ScenePortal : ItemView {
 
-		private PortalState PortalState = PortalState.closed;
+		[SerializeField] private PortalState PortalState = PortalState.closed;
 		public string SceneToLoad;
 
 		public bool isOpened { get { return PortalState == PortalState.open; }
