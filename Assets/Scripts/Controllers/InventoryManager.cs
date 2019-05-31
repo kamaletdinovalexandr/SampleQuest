@@ -13,6 +13,7 @@ namespace Inventory {
             foreach (var slot in Slots) {
                 if (slot.IsEmpty) {
                     slot.AddItem(item);
+                    Debug.Log("Item " + item.Name + "added");
                     return true;
                 }
             }
@@ -23,6 +24,7 @@ namespace Inventory {
         public void RemoveItem(Item item) {
             foreach (var slot in Slots) {
                 if (slot.Item == item) {
+                    Debug.Log("Item " + item.Name + " removed");
                     slot.ClearItem();
                 }
             }
