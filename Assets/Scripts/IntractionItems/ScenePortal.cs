@@ -9,8 +9,7 @@ namespace Items {
 		public bool isOpened { get { return PortalState == PortalState.open; }
 		}
 
-		public override bool Interact(Item item, out Item craftedItem) {
-			craftedItem = new Item();
+		public override bool Interact(Item item) {
 			if (isOpened) {
 				UsePortal();
 				return true;

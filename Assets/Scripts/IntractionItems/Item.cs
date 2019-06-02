@@ -13,11 +13,11 @@ namespace Items {
         public Sprite CraftedItemIcon;
         public string CraftedItemDescription;
 
-		public Item() { }
+        public Item CraftedItem { get; private set; }
 
-		public Item(string name, 
+        public Item(string name, 
 					Sprite icon, 
-					string descriprion = "", 
+					string descriprion, 
 					string inputItem = "", 
 					string craftedItemName = "", 
 					Sprite craftedIcon = null, 
@@ -31,13 +31,12 @@ namespace Items {
             CraftedItemDescription = craftedItemDescription;
 		}
 
-		public bool Interact(Item item, out Item craftedItem) {
+		public bool Interact(Item item) {
 			if (item == null || item.Name != InputItemName) {
-				craftedItem = null;
 				return false;
 			}
 
-			craftedItem = new Item(CraftedItemName, CraftedItemIcon, CraftedItemDescription);
+			CraftedItem = new Item(CraftedItemName, CraftedItemIcon, CraftedItemDescription);
 			return true;
 		}
     }

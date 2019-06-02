@@ -8,8 +8,8 @@ public class ItemViewTrigger : ItemView {
 	[SerializeField] private List<TriggerTarget> Targets;
 	[SerializeField] private TriggerAction SelfAction;
     
-	public override bool Interact(Item item, out Item craftedItem) {
-        if (Item.Interact(item, out craftedItem)) {
+	public override bool Interact(Item item) {
+        if (Item.Interact(item)) {
             SetAfterInteractionState();
             SetSelfState();
 
