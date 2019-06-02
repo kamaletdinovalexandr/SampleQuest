@@ -9,7 +9,7 @@ public class ItemViewTrigger : ItemView {
 	[SerializeField] private TriggerAction SelfAction;
     
 	public override bool Interact(Item item, out Item craftedItem) {
-        if (GetItem().Interact(item, out craftedItem)) {
+        if (Item.Interact(item, out craftedItem)) {
             SetAfterInteractionState();
             SetSelfState();
 

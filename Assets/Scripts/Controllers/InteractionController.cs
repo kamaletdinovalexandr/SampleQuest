@@ -68,18 +68,25 @@ namespace Controllers {
                 return;
             }
 
-            var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
-            if (item == null) {
+            var itemView = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
+            if (itemView == null) {
                 return;
             }
 
-            if (item.IsTakable) {
-                SetItemAction("Take the " + item.name);
-            } 
-            else {
-                SetItemAction("Look at the " + item.name);
-            }
-        }
+			string actionMessage = string.Empty;
+			switch(itemView.itemType) {
+				case ItemViewType.lookable:
+					actionMessage = "Look at the " + itemView.name;
+					break;
+				case ItemViewType.takable:
+					actionMessage = "Take the " + itemView.name;
+					break;
+				case ItemViewType.usable:
+					actionMessage = "Use the " + itemView.name;
+					break;
+			}
+			SetItemAction(actionMessage);
+		}
 
         public void SetInventoryActionMessage() {
             SetItemAction("Use " + SlotItem.Name + " with ");
@@ -87,9 +94,9 @@ namespace Controllers {
             if (!HasRaycastItem()) 
                 return;
 
-            var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
-            if (item != null) {
-                SetItemAction("Use " + SlotItem.Name + " with " + item.Name);
+            var itemView = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
+            if (itemView != null) {
+                SetItemAction("Use " + SlotItem.Name + " with " + itemView.Name);
                 return;
             }
             
@@ -100,22 +107,22 @@ namespace Controllers {
         }
         
         private void TryTakeItemView() {
-            var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
-            if (item == null)
+            var itemView = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
+            if (itemView == null)
                 return;
             
-            if (item.IsTakable) {
-                if (TakeInteraction(item.GetItem())) {
-                    item.gameObject.SetActive(false);
+            if (itemView.itemType == ItemViewType.takable) {
+                if (TakeInteraction(itemView.Item)) {
+                    itemView.gameObject.SetActive(false);
                     ClearItemAction();
                     return;
                 }
             }
             else {
                 var craftedItem = new Item();
-                item.Interact(new Item(), out craftedItem);
+                itemView.Interact(new Item(), out craftedItem);
             }
-            SetInteractionStatus(item.Description);
+            SetInteractionStatus(itemView.Description);
         }
 
         private bool TakeInteraction(Item item) {
