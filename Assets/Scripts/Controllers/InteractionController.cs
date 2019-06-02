@@ -9,7 +9,7 @@ namespace Controllers {
         
         public Item SlotItem;
 
-        private void Update() {
+        private void FixedUpdate() {
             Raycaster.Instance.UpdateHit();
             
             if (IsInventoryInteraction()) {
@@ -37,8 +37,9 @@ namespace Controllers {
             if (!HasRaycastItem())
                 return;
             
-            TrySlotToViewInteract();
-            TrySlotToSlotInteract();
+            var success = TrySlotToViewInteract();
+            if (!success)
+            	TrySlotToSlotInteract();
         }
         
         private bool HasRaycastItem() {
@@ -147,30 +148,35 @@ namespace Controllers {
             }
         }
 
-		private void TrySlotToViewInteract() {
-            var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
-            if (item == null) {
-                ClearItemAction();
-                return;
+		private bool TrySlotToViewInteract() {
+           var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
+           if (item == null) {
+               ClearItemAction();
+               return false;
             }
 
-            Debug.Log("SlotToView interaction");
-            var craftedItem = new Item();
-            if (item.Interact(SlotItem, out craftedItem)) {
-				InventoryManager.Instance.RemoveItem(SlotItem);
+           Debug.Log("SlotToView interaction");
+           var craftedItem = new Item();
+		    var success = item.Interact(SlotItem, out craftedItem);
+
+			if (!success) {
+				SetInteractionStatus("Nothing happened");
+				return false;
 			}
 
-            if (!IsItemEmpty(craftedItem)) {
-                SetInteractionStatus("You picked a " + craftedItem.Name);
-                InventoryManager.Instance.PutItem(craftedItem);
-            }
-            else {
-                ClearInteractionStatus();
-            }
+			InventoryManager.Instance.RemoveItem(SlotItem);
+			if (!IsItemEmpty(craftedItem)) {
+              SetInteractionStatus("You picked a " + craftedItem.Name);
+              InventoryManager.Instance.PutItem(craftedItem);
+          } else {
+				SetInteractionStatus("It's worked!!!");
+			}
+
+			return true;
         }
 
         private bool IsItemEmpty(Item item) {
-            return string.IsNullOrEmpty(item.Name);
+            return item == null || string.IsNullOrEmpty(item.Name);
         }
 
         private void ClearItemAction() {
