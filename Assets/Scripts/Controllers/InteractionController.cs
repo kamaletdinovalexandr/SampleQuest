@@ -110,16 +110,21 @@ namespace Controllers {
             if (itemView == null)
                 return;
             
-            if (itemView.itemType == ItemViewType.takable) {
-                if (TryPutToInventory(itemView.Item)) {
-                    itemView.gameObject.SetActive(false);
-                    SetInteractionStatus("You took the " + itemView.Item.Name);
-                    return;
-                }
+            
+            switch(itemView.itemType) {
+                case ItemViewType.takable:
+                    if (TakeInteraction(itemView.Item)) {
+                        itemView.gameObject.SetActive(false);
+                        ClearItemAction();
+                        return;
+                    }
+                    break;
+                case ItemViewType.usable:
+                case ItemViewType.lookable:
+                    itemView.Interact(new Item("", null, ""));
+                    break;
             }
-            else {
-                itemView.Interact(new Item("", null, ""));
-            }
+
             SetInteractionStatus(itemView.Description);
         }
 
@@ -140,8 +145,7 @@ namespace Controllers {
                     var combinedItem = otherSlot.Item.CraftedItem;
                     InventoryManager.Instance.RemoveItem(otherSlot.Item);
                     InventoryManager.Instance.RemoveItem(SlotItem);
-                    if (combinedItem != null) {
-                        InventoryManager.Instance.PutItem(combinedItem);
+                    if (combinedItem != null && InventoryManager.Instance.PutItem(combinedItem)) {
                         SetInteractionStatus("You picked a " + combinedItem.Name);
                     }
                 }
