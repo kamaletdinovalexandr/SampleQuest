@@ -10,19 +10,17 @@ namespace Controllers {
         public Item SlotItem;
 
         private void FixedUpdate() {
-            Raycaster.Instance.UpdateHit();
-            
             if (IsInventoryInteraction()) {
                 return;
             }
 
+            ClearItemAction();
             if (!HasRaycastItem()) {
-                ClearItemAction();
                 return;
             }
 
-            if (!TrySetSlotActionMessage())
-                TrySetItemViewActionMessage();
+            TrySetSlotActionMessage();
+            TrySetItemViewActionMessage();
 
             if (!Input.GetMouseButtonUp(0)) {
                 return;
@@ -31,7 +29,7 @@ namespace Controllers {
             if (TryGetSlotItemDescription())
                 return;
                 
-            TryTakeItemView();
+            TakeItemView();
         }
 
         public void InventoryInteract() {
@@ -44,6 +42,7 @@ namespace Controllers {
         }
         
         private bool HasRaycastItem() {
+            Raycaster.Instance.UpdateHit();
             return Raycaster.Instance.InteractionObject != null;
         }
 
@@ -51,8 +50,6 @@ namespace Controllers {
             var slot = Raycaster.Instance.InteractionObject.GetComponent<Slot>();
             if (slot != null && slot.Item != null) {
                 SetInteractionStatus(slot.Item.Description);
-                ClearItemAction();
-                
                 return true;
             }
             return false;
@@ -62,14 +59,11 @@ namespace Controllers {
             return SlotItem != null;
         }
         
-        private bool TrySetSlotActionMessage() {
+        private void TrySetSlotActionMessage() {
             var slot = Raycaster.Instance.InteractionObject.GetComponent<Slot>();
             if (slot != null && !slot.IsEmpty) {
                 SetItemAction("Look at the " + slot.Item.Name);
-                return true;
             }
-
-            return false;
         }
 
         private void TrySetItemViewActionMessage() {
@@ -111,15 +105,15 @@ namespace Controllers {
             }
         }
         
-        private void TryTakeItemView() {
+        private void TakeItemView() {
             var itemView = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
             if (itemView == null)
                 return;
             
             if (itemView.itemType == ItemViewType.takable) {
-                if (TakeInteraction(itemView.Item)) {
+                if (TryPutToInventory(itemView.Item)) {
                     itemView.gameObject.SetActive(false);
-                    ClearItemAction();
+                    SetInteractionStatus("You took the " + itemView.Item.Name);
                     return;
                 }
             }
@@ -129,12 +123,8 @@ namespace Controllers {
             SetInteractionStatus(itemView.Description);
         }
 
-        private bool TakeInteraction(Item item) {
-            if (InventoryManager.Instance.PutItem(item)) {
-                SetInteractionStatus("You took the " + item.Name);
-                return true;
-            }
-            return false;
+        private bool TryPutToInventory(Item item) {
+            return InventoryManager.Instance.PutItem(item);
         }
 
         private void TrySlotToSlotInteract() {
@@ -154,8 +144,6 @@ namespace Controllers {
                         InventoryManager.Instance.PutItem(combinedItem);
                         SetInteractionStatus("You picked a " + combinedItem.Name);
                     }
-
-                    ClearItemAction();
                 }
             }
         }
@@ -163,7 +151,6 @@ namespace Controllers {
         private bool TrySlotToViewInteract() {
             var item = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
             if (item == null) {
-                ClearItemAction();
                 return false;
             }
 
