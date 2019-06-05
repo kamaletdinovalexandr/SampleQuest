@@ -113,7 +113,7 @@ namespace Controllers {
             
             switch(itemView.itemType) {
                 case ItemViewType.takable:
-                    if (TakeInteraction(itemView.Item)) {
+                    if (TryPutToInventory(itemView.Item)) {
                         itemView.gameObject.SetActive(false);
                         ClearItemAction();
                         return;
