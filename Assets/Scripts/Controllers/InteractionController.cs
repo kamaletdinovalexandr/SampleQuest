@@ -9,6 +9,15 @@ namespace Controllers {
         
         public Item SlotItem;
 
+        private string _itemAction;
+        private string _interactionStatus;
+
+        private UIController _uiController;
+
+        private void Awake() {
+            _uiController = FindObjectOfType<UIController>();
+        }
+
         private void FixedUpdate() {
             if (IsInventoryInteraction()) {
                 return;
@@ -16,6 +25,7 @@ namespace Controllers {
 
             ClearItemAction();
             if (!HasRaycastItem()) {
+                UpdateUI();
                 return;
             }
 
@@ -23,22 +33,28 @@ namespace Controllers {
             TrySetItemViewActionMessage();
 
             if (!Input.GetMouseButtonUp(0)) {
+                UpdateUI();
                 return;
             }
-            
-            if (TryGetSlotItemDescription())
+
+            if (TryGetSlotItemDescription()) {
+                UpdateUI();
                 return;
+            }
                 
             TakeItemView();
+            UpdateUI();
         }
 
         public void InventoryInteract() {
-            if (!HasRaycastItem())
+            if (!HasRaycastItem()) 
                 return;
-            
+
             var success = TrySlotToViewInteract();
             if (!success)
             	TrySlotToSlotInteract();
+            
+            UpdateUI();
         }
         
         private bool HasRaycastItem() {
@@ -89,13 +105,16 @@ namespace Controllers {
 
         public void SetInventoryActionMessage() {
             SetItemAction("Use " + SlotItem.Name + " with ");
-            
-            if (!HasRaycastItem()) 
+
+            if (!HasRaycastItem()) {
+                UpdateUI();
                 return;
+            }
 
             var itemView = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
             if (itemView != null) {
                 SetItemAction("Use " + SlotItem.Name + " with " + itemView.Name);
+                UpdateUI();
                 return;
             }
             
@@ -103,19 +122,19 @@ namespace Controllers {
             if (slot != null && !slot.IsEmpty && slot.Item.Name != SlotItem.Name) {
                 SetItemAction("Use " + SlotItem.Name + " with " + slot.Item.Name);
             }
+            
+            UpdateUI();
         }
         
         private void TakeItemView() {
             var itemView = Raycaster.Instance.InteractionObject.GetComponent<ItemView>();
             if (itemView == null)
                 return;
-            
-            
+
             switch(itemView.itemType) {
                 case ItemViewType.takable:
                     if (TryPutToInventory(itemView.Item)) {
                         itemView.gameObject.SetActive(false);
-                        ClearItemAction();
                         return;
                     }
                     break;
@@ -184,21 +203,29 @@ namespace Controllers {
         }
 
         private void ClearItemAction() {
-            UIController.Instance.SetItemAction(string.Empty);
+            _itemAction = string.Empty;
         }
 
         private void ClearInteractionStatus() {
-            UIController.Instance.SetMessage(string.Empty);
+            _interactionStatus = string.Empty;
         }
 
         private void SetItemAction(string message) {
-            UIController.Instance.SetItemAction(message);
+            _itemAction = message;
         }
         
         private void SetInteractionStatus(string message) {
-            UIController.Instance.SetMessage(message);
+            _interactionStatus = message;
         }
-        
-        
+
+        private void UpdateUI() {
+            if (_uiController == null) {
+                Debug.LogWarning("UIController is null");
+                return;
+            }
+
+            _uiController.SetMessage(_interactionStatus);
+            _uiController.SetItemAction(_itemAction);
+        }
     }
 }
