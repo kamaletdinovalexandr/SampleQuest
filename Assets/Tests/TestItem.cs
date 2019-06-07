@@ -15,10 +15,11 @@ namespace Tests {
            Assert.True(itemA.Interact(itemB));
         }
         
+        [Test]
         public void ItemInteractionUnSuccess() {
             var itemA = new Item("a", null, "itemA", "b", "", null, "");
             var itemC = new Item("c", null, "itemC", "", "", null, "");
-            Assert.True(itemA.Interact(itemC));
+            Assert.False(itemA.Interact(itemC));
         }
     }
 }

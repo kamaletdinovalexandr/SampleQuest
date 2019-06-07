@@ -1,7 +1,11 @@
 {
-    "name": "Items",
-    "references": [],
-    "optionalUnityReferences": [],
+    "name": "Tests",
+    "references": [
+        "Scripts"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
     "includePlatforms": [
         "Editor"
     ],
