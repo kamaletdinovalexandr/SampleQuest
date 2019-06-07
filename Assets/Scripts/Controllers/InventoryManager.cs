@@ -5,7 +5,7 @@ using Controllers;
 using Items;
 
 namespace Inventory {
-    public class InventoryManager : MBSingleton<InventoryManager> {
+    public class InventoryManager : MonoBehaviour {
 
         [SerializeField] private List<Slot> Slots;
 

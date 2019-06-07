@@ -13,9 +13,11 @@ namespace Controllers {
         private string _interactionStatus;
 
         private UIController _uiController;
+        private InventoryManager _inventoryManager;
 
         private void Awake() {
             _uiController = FindObjectOfType<UIController>();
+            _inventoryManager = FindObjectOfType<InventoryManager>();
         }
 
         private void FixedUpdate() {
@@ -148,7 +150,12 @@ namespace Controllers {
         }
 
         private bool TryPutToInventory(Item item) {
-            return InventoryManager.Instance.PutItem(item);
+            return _inventoryManager != null && _inventoryManager.PutItem(item);
+        }
+
+        private void RemoveFromInventory(Item item) {
+            if (_inventoryManager != null) 
+                _inventoryManager.RemoveItem(item);
         }
 
         private void TrySlotToSlotInteract() {
@@ -162,9 +169,9 @@ namespace Controllers {
 
                 if (otherSlot.Item.Interact(SlotItem)) {
                     var combinedItem = otherSlot.Item.CraftedItem;
-                    InventoryManager.Instance.RemoveItem(otherSlot.Item);
-                    InventoryManager.Instance.RemoveItem(SlotItem);
-                    if (combinedItem != null && InventoryManager.Instance.PutItem(combinedItem)) {
+                    RemoveFromInventory(otherSlot.Item);
+                    RemoveFromInventory(SlotItem);
+                    if (combinedItem != null && TryPutToInventory(combinedItem)) {
                         SetInteractionStatus("You picked a " + combinedItem.Name);
                     }
                 }
@@ -185,11 +192,11 @@ namespace Controllers {
                 return false;
             }
 
-            InventoryManager.Instance.RemoveItem(SlotItem);
+            RemoveFromInventory(SlotItem);
             var craftedItem = item.CraftedItem;
             if (!IsItemEmpty(craftedItem)) {
                 SetInteractionStatus("You picked a " + craftedItem.Name);
-                InventoryManager.Instance.PutItem(craftedItem);
+                TryPutToInventory(craftedItem);
             }
             else {
                 SetInteractionStatus("It's worked!!!");
