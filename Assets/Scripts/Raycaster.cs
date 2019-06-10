@@ -14,35 +14,29 @@ namespace InputModule {
         [SerializeField] private EventSystem _EventSystem;
         
         private PointerEventData _pointerEventData;
-		public GameObject InteractionObject { get; private set; }
-
+		
 		private void Awake() {
             _pointerEventData = new PointerEventData(_EventSystem);
         }
 
-        public void UpdateHit() {
-			InteractionObject = null;
-			TryGetGOInGameWorld();
-			TryGetGOInUI();        
+        public GameObject GetRaycastHit() {
+			var go = TryGetGOInGameWorld();
+			return go != null ? go : TryGetGOInUI();
         }
 
-        private void TryGetGOInUI() {
+        private GameObject TryGetGOInUI() {
             _pointerEventData.position = Input.mousePosition;
             var results = new List<RaycastResult>();
             _raycaster.Raycast(_pointerEventData, results);
             if (results.Count == 0)
-	            return;
+	            return null;
             
-			var hit = results.First();
-			if (hit.gameObject != null) {
-				InteractionObject = hit.gameObject;
-			}
+			return results.First().gameObject;
         }
 
-        private void TryGetGOInGameWorld() {
+        private GameObject TryGetGOInGameWorld() {
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-			if (hit)
-				InteractionObject = hit.transform.gameObject;
+			return hit == true ? hit.transform.gameObject : null;
         }
     }
 }
