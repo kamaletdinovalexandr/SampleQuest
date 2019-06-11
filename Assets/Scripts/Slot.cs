@@ -34,17 +34,17 @@ namespace Inventory {
         public void OnBeginDrag(PointerEventData eventData) {
             _icon.raycastTarget = false;
             _iconPosition = transform.localPosition;
-            InteractionController.Instance.SlotItem = Item;
+            InteractionController.Instance.StartInventoryInteraction(Item);
         }
 
         public void OnDrag(PointerEventData eventData) {
             _icon.transform.position = Input.mousePosition;
-            InteractionController.Instance.SetInventoryActionMessage();
+            InteractionController.Instance.UpdateInventoryActionMessage();
         }
 
         public void OnEndDrag(PointerEventData eventData) {
             InteractionController.Instance.InventoryInteract();
-            InteractionController.Instance.SlotItem = null;
+            InteractionController.Instance.EndInventoryInteraction();
             _icon.raycastTarget = true;
             transform.localPosition = _iconPosition;
         }

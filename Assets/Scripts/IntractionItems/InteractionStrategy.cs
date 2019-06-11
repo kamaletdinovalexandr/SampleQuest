@@ -7,9 +7,20 @@ using Items;
 
 public class InteractionStrategy {
     
+    private InventoryManager _inventoryManager;
+    
+    public Item SlotItem;
     public string ItemAction { get; private set; }
     public string InteractionStatus { get; private set; }
-    public void Execute(GameObject go, InventoryManager inventoryManager) {
+
+    public InteractionStrategy(InventoryManager inventoryManager) {
+        _inventoryManager = inventoryManager;
+    }
+    public void Execute(GameObject go) {
+        if (IsInventoryInteraction()) {
+            return;
+        }
+
         ClearItemAction();
         
         if (go == null) {
@@ -27,9 +38,9 @@ public class InteractionStrategy {
             return;
         }
                 
-        TakeItemView(go, inventoryManager);
+        TakeItemView(go);
     }
-    
+
     public void InventoryInteract(GameObject go) {
         if (go == null) {
             return;
@@ -49,19 +60,15 @@ public class InteractionStrategy {
         return false;
     }
     
-    public void SetInventoryActionMessage() {
+    public void SetInventoryActionMessage(GameObject go) {
         SetItemAction("Use " + SlotItem.Name + " with ");
-
-        var go = Raycaster.Instance.GetRaycastHit();
         if (go == null) {
-            UpdateUI();
             return;
         }
 
         var itemView = go.GetComponent<ItemView>();
         if (itemView != null) {
             SetItemAction("Use " + SlotItem.Name + " with " + itemView.Name);
-            UpdateUI();
             return;
         }
             
@@ -69,9 +76,12 @@ public class InteractionStrategy {
         if (slot != null && !slot.IsEmpty && slot.Item.Name != SlotItem.Name) {
             SetItemAction("Use " + SlotItem.Name + " with " + slot.Item.Name);
         }
-            
-        UpdateUI();
     }
+
+    private bool IsInventoryInteraction() {
+        return SlotItem != null;
+    }
+    
     private void TrySetSlotActionMessage(GameObject go) {
         var slot = go.GetComponent<Slot>();
         if (slot != null && !slot.IsEmpty) {
@@ -100,14 +110,14 @@ public class InteractionStrategy {
         SetItemAction(actionMessage);
     }
     
-    private void TakeItemView(GameObject go, InventoryManager inventoryManager) {
+    private void TakeItemView(GameObject go) {
         var itemView = go.GetComponent<ItemView>();
         if (itemView == null)
             return;
 
         switch(itemView.itemType) {
             case ItemViewType.takable:
-                if (TryPutToInventory(inventoryManager, itemView.Item)) {
+                if (TryPutToInventory(itemView.Item)) {
                     itemView.gameObject.SetActive(false);
                     return;
                 }
@@ -131,8 +141,8 @@ public class InteractionStrategy {
 
             if (otherSlot.Item.Interact(SlotItem)) {
                 var combinedItem = otherSlot.Item.CraftedItem;
-                RemoveFromInventory(otherSlot.Item);
-                RemoveFromInventory(SlotItem);
+                _inventoryManager.RemoveItem(otherSlot.Item);
+                _inventoryManager.RemoveItem(SlotItem);
                 if (combinedItem != null && TryPutToInventory(combinedItem)) {
                     SetInteractionStatus("You picked a " + combinedItem.Name);
                 }
@@ -154,7 +164,7 @@ public class InteractionStrategy {
             return false;
         }
 
-        RemoveFromInventory(SlotItem);
+        _inventoryManager.RemoveItem(SlotItem);
         var craftedItem = item.CraftedItem;
         if (!IsItemEmpty(craftedItem)) {
             SetInteractionStatus("You picked a " + craftedItem.Name);
@@ -166,9 +176,12 @@ public class InteractionStrategy {
 
         return true;
     }
-    
-    private bool TryPutToInventory(InventoryManager inventoryManager, Item item) {
-        return inventoryManager != null && inventoryManager.PutItem(item);
+
+    private bool IsItemEmpty(Item item) {
+        return item == null || item.Name == string.Empty;
+    }
+    private bool TryPutToInventory(Item item) {
+        return _inventoryManager.PutItem(item);
     }
     
     private void ClearItemAction() {

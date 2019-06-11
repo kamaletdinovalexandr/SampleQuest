@@ -7,8 +7,6 @@ using Inventory;
 namespace Controllers {
     public class InteractionController : MBSingleton<InteractionController> {
         
-        public Item SlotItem;
-
         private string _itemAction;
         private string _interactionStatus;
 
@@ -19,52 +17,41 @@ namespace Controllers {
         private void Awake() {
             _uiController = FindObjectOfType<UIController>();
             _inventoryManager = FindObjectOfType<InventoryManager>();
-            _interactionStrategy = new InteractionStrategy();
-        }
-
-        private void FixedUpdate() {
-            if (IsInventoryInteraction()) {
-                return;
-            }
-            
-            var go = Raycaster.Instance.GetRaycastHit();
-            _interactionStrategy.Execute(go, _inventoryManager);
-            
-        }
-
-        private bool IsInventoryInteraction() {
-            return SlotItem != null;
-        }
-
-        private void RemoveFromInventory(Item item) {
-            if (_inventoryManager != null) 
-                _inventoryManager.RemoveItem(item);
-        }
-
-        private bool IsItemEmpty(Item item) {
-            return item == null || string.IsNullOrEmpty(item.Name);
-        }
-        
-        private void ClearInteractionStatus() {
-            _interactionStatus = string.Empty;
-        }
-
-        private void SetItemAction(string message) {
-            _itemAction = message;
-        }
-        
-        private void SetInteractionStatus(string message) {
-            _interactionStatus = message;
-        }
-
-        private void UpdateUI() {
-            if (_uiController == null) {
+            if (_uiController == null || _inventoryManager == null) {
                 Debug.LogWarning("UIController is null");
                 return;
             }
+            _interactionStrategy = new InteractionStrategy(_inventoryManager);
+        }
 
-            _uiController.SetMessage(_interactionStatus);
-            _uiController.SetItemAction(_itemAction);
+        private void FixedUpdate() {
+            var go = Raycaster.Instance.GetRaycastHit();
+            _interactionStrategy.Execute(go);
+            UpdateUI();
+        }
+
+        public void StartInventoryInteraction(Item slotItem) {
+            _interactionStrategy.SlotItem = slotItem;
+        }
+
+        public void UpdateInventoryActionMessage() {
+            var go = Raycaster.Instance.GetRaycastHit();
+            _interactionStrategy.SetInventoryActionMessage(go);
+            UpdateUI();
+        }
+
+        public void EndInventoryInteraction() {
+            _interactionStrategy.SlotItem = null;
+        }
+
+        public void InventoryInteract() {
+            var go = Raycaster.Instance.GetRaycastHit();
+            _interactionStrategy.InventoryInteract(go);
+        }
+
+        private void UpdateUI() {
+            _uiController.SetMessage(_interactionStrategy.InteractionStatus);
+            _uiController.SetItemAction(_interactionStrategy.ItemAction);
         }
     }
 }
