@@ -9,6 +9,10 @@ namespace Inventory {
 
         [SerializeField] private List<Slot> Slots;
 
+        public void Init(List<Slot> slots) {
+            Slots = slots;
+        }
+
         public bool PutItem(Item item) {
             foreach (var slot in Slots) {
                 if (slot.IsEmpty) {

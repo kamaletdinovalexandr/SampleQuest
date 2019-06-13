@@ -26,7 +26,7 @@ namespace Controllers {
 
         private void FixedUpdate() {
             var go = Raycaster.Instance.GetRaycastHit();
-            _interactionStrategy.Execute(go);
+            _interactionStrategy.Execute(go, Input.GetMouseButtonUp(0));
             UpdateUI();
         }
 

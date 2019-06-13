@@ -13,6 +13,8 @@ namespace Items {
         public Sprite CraftedItemIcon;
         public string CraftedItemDescription;
 
+        public Item() { }
+
         public Item CraftedItem { get; private set; }
 
         public Item(string name, 

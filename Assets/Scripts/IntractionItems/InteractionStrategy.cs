@@ -16,7 +16,7 @@ public class InteractionStrategy {
     public InteractionStrategy(InventoryManager inventoryManager) {
         _inventoryManager = inventoryManager;
     }
-    public void Execute(GameObject go) {
+    public void Execute(GameObject go, bool endInteraction) {
         if (IsInventoryInteraction()) {
             return;
         }
@@ -30,7 +30,7 @@ public class InteractionStrategy {
         TrySetSlotActionMessage(go);
         TrySetItemViewActionMessage(go);
 
-        if (!Input.GetMouseButtonUp(0)) {
+        if (!endInteraction) {
             return;
         }
 
