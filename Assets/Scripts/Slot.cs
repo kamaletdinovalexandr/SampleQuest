@@ -9,24 +9,40 @@ using Controllers;
 namespace Inventory {
     public class Slot : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler {
 
-        [SerializeField] private Image _icon;
+        [SerializeField]
+        private Image _icon;
         public Item Item;
         public bool IsEmpty { get { return Item == null; } }
         private Vector2 _iconPosition;
 
         private void Awake() {
+            if (_icon == null) {
+                Debug.LogWarning("Slot: Icon is null");
+                return;
+            }
+            
             _icon = GetComponent<Image>();
             _icon.enabled = false;
         }
 
         public void AddItem(Item item) {
             Item = item;
+            if (_icon == null) {
+                Debug.LogWarning("Slot: Icon is null");
+                return;
+            }
+
             _icon.enabled = true;
             _icon.sprite = item.Icon;
         }
 
         public void ClearItem() {
             Item = null;
+            if (_icon == null) {
+                Debug.LogWarning("Slot: Icon is null");
+                return;
+            }
+            
             _icon.sprite = null;
             _icon.enabled = false;
         }

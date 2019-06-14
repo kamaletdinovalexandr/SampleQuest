@@ -36,7 +36,7 @@ namespace Inventory {
 
         public bool IsInventoryContains(Item item) {
             foreach (var slot in Slots) {
-                if (slot.Item == item) {
+                if (slot.Item.Name == item.Name) {
                     return true;
                 }
             }
