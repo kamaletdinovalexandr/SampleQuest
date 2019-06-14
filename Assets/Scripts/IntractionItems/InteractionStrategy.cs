@@ -41,14 +41,16 @@ public class InteractionStrategy {
         TakeItemView(go);
     }
 
-    public void InventoryInteract(GameObject go) {
+    public bool InventoryInteract(GameObject go) {
         if (go == null) {
-            return;
+            return false;
         }
 
-        var success = TrySlotToViewInteract(go);
-        if (!success)
+        var isSuccess = TrySlotToViewInteract(go);
+        if (!isSuccess)
             TrySlotToSlotInteract(go);
+
+        return isSuccess;
     }
     
     private bool TryGetSlotItemDescription(GameObject go) {
