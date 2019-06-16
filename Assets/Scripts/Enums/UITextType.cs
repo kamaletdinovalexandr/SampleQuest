@@ -1,0 +1,1 @@
+public enum UITextType { message, action }

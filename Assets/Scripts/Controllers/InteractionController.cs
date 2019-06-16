@@ -50,8 +50,8 @@ namespace Controllers {
         }
 
         private void UpdateUI() {
-            _uiController.SetMessage(_interactionStrategy.InteractionStatus);
-            _uiController.SetItemAction(_interactionStrategy.ItemAction);
+            _uiController[UITextType.message] = _interactionStrategy.InteractionStatus;
+            _uiController[UITextType.action] = _interactionStrategy.ItemAction;
         }
     }
 }

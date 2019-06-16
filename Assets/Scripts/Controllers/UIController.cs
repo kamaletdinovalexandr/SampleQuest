@@ -4,34 +4,30 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace Controllers {
-    
-    public class UIController :  MBSingleton<UIController> {
+    public class UIController : MBSingleton<UIController> {
         [SerializeField] private Text Message;
         [SerializeField] private Text ItemAction;
-        
+
+        public string this[UITextType textType] {
+            set {
+                switch (textType) {
+                    case UITextType.message:
+                        Message.text = value;
+                        break;
+                    case UITextType.action:
+                        ItemAction.text = value;
+                        break;
+                }
+            }
+        }
+
         private void Start() {
             InitText();
         }
+
         private void InitText() {
-            ClearAction();
-            ClearMessage();
-        }
-
-        public void ClearAction() {
-            ItemAction.text = string.Empty;
-        }
-        
-        public void ClearMessage() {
             Message.text = string.Empty;
-        }
-
-        public void SetMessage(string message) {
-            Message.text = message;
-        }
-        
-        public void SetItemAction(string itemAction) {
-            ItemAction.text = itemAction;
+            ItemAction.text = string.Empty;
         }
     }
 }
-
