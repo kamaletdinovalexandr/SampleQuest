@@ -20,23 +20,30 @@ namespace Items {
         public Sprite CraftedItemIcon;
         public string CraftedItemDeskription;
 
-        public Item Item {
-            get {
-                return new Item(Name,
-                    Icon, 
-                    Description, 
-                    InputItemName, 
-                    CraftedItemName, 
-                    CraftedItemIcon, 
-                    CraftedItemDeskription );
-            }
-        }
+        public Item Item;
+    
         public Item CraftedItem {
             get { return Item.CraftedItem; }
         }
 
         public void Awake() {
-            Icon = GetComponent<SpriteRenderer>().sprite;
+            Init();
+        }
+
+        public void Init() {
+            var sr = GetComponent<SpriteRenderer>();
+            if (sr == null)
+                sr = gameObject.AddComponent<SpriteRenderer>();
+            
+            Icon = sr.sprite;
+            
+            Item = new Item(Name,
+                Icon, 
+                Description, 
+                InputItemName, 
+                CraftedItemName, 
+                CraftedItemIcon, 
+                CraftedItemDeskription );
         }
 
         public virtual bool Interact(Item item) {
