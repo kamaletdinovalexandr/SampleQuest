@@ -45,12 +45,7 @@ public class InteractionStrategy {
         if (go == null) {
             return false;
         }
-
-        var isSuccess = TrySlotToViewInteract(go);
-        if (!isSuccess)
-            TrySlotToSlotInteract(go);
-
-        return isSuccess;
+        return TrySlotToViewInteract(go) || TrySlotToSlotInteract(go);
     }
     
     private bool TryGetSlotItemDescription(GameObject go) {
@@ -129,13 +124,12 @@ public class InteractionStrategy {
                 itemView.Interact(new Item("", null, ""));
                 break;
         }
-
         SetInteractionStatus(itemView.Description);
     }
     
-    private void TrySlotToSlotInteract(GameObject go) {
+    private bool TrySlotToSlotInteract(GameObject go) {
         if (go == null)
-            return;
+            return false;
 
         var otherSlot = go.gameObject.GetComponent<Slot>();
         if (otherSlot != null && otherSlot.Item != null && otherSlot.Item != SlotItem) {
@@ -148,8 +142,10 @@ public class InteractionStrategy {
                 if (combinedItem != null && TryPutToInventory(combinedItem)) {
                     SetInteractionStatus("You picked a " + combinedItem.Name);
                 }
+                return true;
             }
         }
+        return false;
     }
     
     private bool TrySlotToViewInteract(GameObject go) {
@@ -166,8 +162,8 @@ public class InteractionStrategy {
             return false;
         }
 
-        _inventoryManager.RemoveItem(SlotItem);
         var craftedItem = item.CraftedItem;
+        _inventoryManager.RemoveItem(SlotItem);
         if (!IsItemEmpty(craftedItem)) {
             SetInteractionStatus("You picked a " + craftedItem.Name);
             TryPutToInventory(craftedItem);
