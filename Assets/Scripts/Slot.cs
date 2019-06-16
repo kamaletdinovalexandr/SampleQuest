@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,11 +17,6 @@ namespace Inventory {
         private Vector2 _iconPosition;
 
         private void Awake() {
-            if (_icon == null) {
-                Debug.LogWarning("Slot: Icon is null");
-                return;
-            }
-            
             _icon = GetComponent<Image>();
             _icon.enabled = false;
         }
