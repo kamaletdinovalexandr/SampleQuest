@@ -17,7 +17,7 @@ namespace Inventory {
             foreach (var slot in Slots) {
                 if (slot.IsEmpty) {
                     slot.AddItem(item);
-                    Debug.Log("Item " + item.Name + "added");
+                    Debug.Log("Item " + item.Name + " added");
                     return true;
                 }
             }
