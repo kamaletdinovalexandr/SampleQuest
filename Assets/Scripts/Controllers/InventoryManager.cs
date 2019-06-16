@@ -15,18 +15,18 @@ namespace Inventory {
         }
 
         public bool PutItem(Item item) {
-            var slot = Slots.First(s => s.IsEmpty);
-            if (slot != null) {
-                slot.AddItem(item);
+            return Slots.Where(s => s.IsEmpty).First(s => {
+                s.AddItem(item);
                 Debug.Log("Item " + item.Name + " added");
                 return true;
-            }
-            return false;
+            });
         }
 
         public void RemoveItem(Item item) {
-            Slots.FindAll(s => s.Item == item).ForEach(s => s.ClearItem());
-            Debug.Log("Item " + item.Name + " removed");
+            Slots.FindAll(s => s.Item == item).ForEach(s => {
+                s.ClearItem();
+                Debug.Log("Item " + item.Name + " removed");
+            });
         }
 
         public bool IsInventoryContains(Item item) {
