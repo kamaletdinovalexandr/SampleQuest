@@ -5,11 +5,11 @@ using UnityEngine;
 using Inventory;
 using Items;
 
-public class InteractionStrategy {
+public class InteractionStrategy : IInteractionStrategy {
     
     private InventoryManager _inventoryManager;
     
-    public Item SlotItem;
+    public Item SlotItem { get; set; }
     public string ItemAction { get; private set; }
     public string InteractionStatus { get; private set; }
 

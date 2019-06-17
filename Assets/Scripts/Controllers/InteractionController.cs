@@ -12,7 +12,7 @@ namespace Controllers {
 
         private UIController _uiController;
         private InventoryManager _inventoryManager;
-        private InteractionStrategy _interactionStrategy;
+        private IInteractionStrategy _interactionStrategy;
 
         private void Awake() {
             _uiController = FindObjectOfType<UIController>();
