@@ -8,13 +8,13 @@ using Items;
 
 public class InteractionStrategy : IInteractionStrategy {
     
-    private InventoryManager _inventoryManager;
+    private readonly IInventoryManager _inventoryManager;
     
     public Item SlotItem { get; set; }
     public string ItemAction { get; private set; }
     public string InteractionStatus { get; private set; }
 
-    public InteractionStrategy(InventoryManager inventoryManager) {
+    public InteractionStrategy(IInventoryManager inventoryManager) {
         _inventoryManager = inventoryManager;
     }
     public void Execute(GameObject go, bool endInteraction) {

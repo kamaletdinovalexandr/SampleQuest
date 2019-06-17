@@ -6,8 +6,7 @@ using Controllers;
 using Items;
 
 namespace Inventory {
-    public class InventoryManager : MonoBehaviour {
-
+    public class InventoryManager : MonoBehaviour, IInventoryManager {
         [SerializeField] private List<Slot> Slots;
 
         public void Init(List<Slot> slots) {
