@@ -1,5 +1,6 @@
 ﻿using System;
 using InputModule;
+using Interaction;
 using UnityEngine;
 using Items;
 using Inventory;

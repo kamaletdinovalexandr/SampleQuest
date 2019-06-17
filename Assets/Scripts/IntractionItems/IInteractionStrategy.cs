@@ -1,6 +1,7 @@
 using UnityEngine;
+using Items;
 
-namespace Items {
+namespace Interaction {
     public interface IInteractionStrategy {
         Item SlotItem { set; }
         string ItemAction { get; }
