@@ -6,62 +6,98 @@ using UnityEngine;
 using Items;
 
 namespace Tests {
-    
     public class TestInteractionStrategy {
+        private InventoryManager _inventoryManager;
+        private Slot _slot;
+        private InteractionStrategy _interactionStrategy;
+
+
+        [SetUp]
+        public void Init() {
+            _inventoryManager = new GameObject().AddComponent<InventoryManager>();
+            _slot = new GameObject().AddComponent<Slot>();
+            _inventoryManager.Init(new List<Slot> {_slot});
+            _interactionStrategy = new InteractionStrategy(_inventoryManager);
+        }
 
         [Test]
-        public void TakeItemView() {
-            var inventoryManager = new GameObject().AddComponent<InventoryManager>();
-            var slot = new GameObject().AddComponent<Slot>();
-            inventoryManager.Init(new List<Slot> { slot } );
-            var interactionStrategy = new InteractionStrategy(inventoryManager);
-            
+        public void TakeItemViewSuccess() {
             var go = new GameObject();
             var view = go.AddComponent<ItemView>();
             view.Name = "Test1";
             view.itemType = ItemViewType.takable;
             view.Init();
-            interactionStrategy.Execute(go, true);
-            var success = inventoryManager.IsInventoryContains(view.Item);
+            _interactionStrategy.Execute(go, true);
+            var success = _inventoryManager.IsInventoryContains(view.Item);
             Assert.True(success);
         }
-        
+
         [Test]
-        public void SlotToViewInteraction() {
-            var inventoryManager = new GameObject().AddComponent<InventoryManager>();
-            var slot = new GameObject().AddComponent<Slot>();
-            inventoryManager.Init(new List<Slot> { slot } );
-            var interactionStrategy = new InteractionStrategy(inventoryManager);
-            
-            var inventoryItem = new Item { Name = "InventoryItem" };
-            inventoryManager.PutItem(inventoryItem);
-            
+        public void TakeItemViewFail() {
+            var go = new GameObject();
+            var view = go.AddComponent<ItemView>();
+            view.Name = "Test1";
+            view.Init();
+            _interactionStrategy.Execute(go, true);
+            var unSuccess = _inventoryManager.IsInventoryContains(view.Item);
+            Assert.False(unSuccess);
+        }
+
+        [Test]
+        public void SlotToViewInteractionSuccess() {
+            var inventoryItem = new Item {Name = "InventoryItem"};
+            _inventoryManager.PutItem(inventoryItem);
+
             var go = new GameObject();
             var view = go.AddComponent<ItemView>();
             view.InputItemName = "InventoryItem";
             view.Init();
-            interactionStrategy.SlotItem = inventoryItem;
-            var success = interactionStrategy.InventoryInteract(go);
+            _interactionStrategy.SlotItem = inventoryItem;
+            var success = _interactionStrategy.InventoryInteract(go);
             Assert.True(success);
         }
 
         [Test]
-        public void SlotToSlotInteraction() {
-            var inventoryManager = new GameObject().AddComponent<InventoryManager>();
-            var slot = new GameObject().AddComponent<Slot>();
-            var slot2 = new GameObject().AddComponent<Slot>();
-            inventoryManager.Init(new List<Slot> { slot, slot2 } );
-            var interactionStrategy = new InteractionStrategy(inventoryManager);
-            
-            var inventoryItem1 = new Item { Name = "InventoryItem1" };
-            inventoryManager.PutItem(inventoryItem1);
-            
-            var inventoryItem2 = new Item { Name = "InventoryItem2", InputItemName = "InventoryItem1"};
-            inventoryManager.PutItem(inventoryItem2);
+        public void SlotToViewInteractionFail() {
+            var inventoryItem = new Item {Name = "InventoryItem"};
+            _inventoryManager.PutItem(inventoryItem);
 
-            interactionStrategy.SlotItem = inventoryItem1;
-            var success = interactionStrategy.InventoryInteract(slot2.gameObject);
+            var go = new GameObject();
+            var view = go.AddComponent<ItemView>();
+            view.Init();
+            _interactionStrategy.SlotItem = inventoryItem;
+            var unSuccess = _interactionStrategy.InventoryInteract(go);
+            Assert.False(unSuccess);
+        }
+
+        [Test]
+        public void SlotToSlotInteractionSuccess() {
+            var slot2 = new GameObject().AddComponent<Slot>();
+            _inventoryManager.AddSlot(slot2);
+
+            var inventoryItem1 = new Item {Name = "InventoryItem1"};
+            _inventoryManager.PutItem(inventoryItem1);
+            var inventoryItem2 = new Item {Name = "InventoryItem2", InputItemName = "InventoryItem1"};
+            _inventoryManager.PutItem(inventoryItem2);
+
+            _interactionStrategy.SlotItem = inventoryItem1;
+            var success = _interactionStrategy.InventoryInteract(slot2.gameObject);
             Assert.True(success);
+        }
+
+        [Test]
+        public void SlotToSlotInteractionFail() {
+            var slot2 = new GameObject().AddComponent<Slot>();
+            _inventoryManager.AddSlot(slot2);
+
+            var inventoryItem1 = new Item {Name = "InventoryItem1"};
+            _inventoryManager.PutItem(inventoryItem1);
+            var inventoryItem2 = new Item {Name = "InventoryItem2"};
+            _inventoryManager.PutItem(inventoryItem2);
+
+            _interactionStrategy.SlotItem = inventoryItem1;
+            var unSuccess = _interactionStrategy.InventoryInteract(slot2.gameObject);
+            Assert.False(unSuccess);
         }
     }
 }
