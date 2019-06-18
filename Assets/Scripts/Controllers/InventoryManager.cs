@@ -14,11 +14,15 @@ namespace Inventory {
         }
 
         public bool PutItem(Item item) {
-            return Slots.Where(s => s.IsEmpty).First(s => {
-                s.AddItem(item);
+            var emptySlot = Slots.FirstOrDefault(s => s.IsEmpty);
+
+            if (emptySlot != null) {
+                emptySlot.AddItem(item);
                 Debug.Log("Item " + item.Name + " added");
                 return true;
-            });
+            }
+
+            return false;
         }
 
         public void RemoveItem(Item item) {
@@ -29,7 +33,11 @@ namespace Inventory {
         }
 
         public bool IsInventoryContains(Item item) {
-            return Slots.First(s => s.Item == item);
+            return Slots.Any(s => s.Item == item);
+        }
+
+        public void AddSlot(Slot newSlot) {
+            Slots.Add(newSlot);
         }
     }
 }
