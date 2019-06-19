@@ -8,15 +8,14 @@ using Items;
 namespace Tests {
     public class TestInteractionStrategy {
         private InventoryManager _inventoryManager;
-        private Slot _slot;
         private InteractionStrategy _interactionStrategy;
 
 
         [SetUp]
         public void Init() {
             _inventoryManager = new GameObject().AddComponent<InventoryManager>();
-            _slot = new GameObject().AddComponent<Slot>();
-            _inventoryManager.Init(new List<Slot> {_slot});
+            var slot = new GameObject().AddComponent<Slot>();
+            _inventoryManager.AddSlot(slot);
             _interactionStrategy = new InteractionStrategy(_inventoryManager);
         }
 
@@ -72,8 +71,8 @@ namespace Tests {
 
         [Test]
         public void SlotToSlotInteractionSuccess() {
-            var slot2 = new GameObject().AddComponent<Slot>();
-            _inventoryManager.AddSlot(slot2);
+            var slot = new GameObject().AddComponent<Slot>();
+            _inventoryManager.AddSlot(slot);
 
             var inventoryItem1 = new Item {Name = "InventoryItem1"};
             _inventoryManager.PutItem(inventoryItem1);
@@ -81,7 +80,7 @@ namespace Tests {
             _inventoryManager.PutItem(inventoryItem2);
 
             _interactionStrategy.SlotItem = inventoryItem1;
-            var success = _interactionStrategy.InventoryInteract(slot2.gameObject);
+            var success = _interactionStrategy.InventoryInteract(slot.gameObject);
             Assert.True(success);
         }
 
