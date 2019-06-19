@@ -9,24 +9,20 @@ namespace Inventory {
     public class InventoryManager : MonoBehaviour, IInventoryManager {
         [SerializeField] private List<Slot> Slots;
 
-        public void Init(List<Slot> slots) {
-            Slots = slots;
-        }
-
         public bool PutItem(Item item) {
             var emptySlot = Slots.FirstOrDefault(s => s.IsEmpty);
-
-            if (emptySlot != null) {
-                emptySlot.AddItem(item);
-                Debug.Log("Item " + item.Name + " added");
-                return true;
+            
+            if (emptySlot == null) {
+                return false;
             }
 
-            return false;
+            emptySlot.AddItem(item);
+            Debug.Log("Item " + item.Name + " added");
+            return true;
         }
 
         public void RemoveItem(Item item) {
-            Slots.FindAll(s => s.Item == item).ForEach(s => {
+            Slots.Where(s => s.Item == item).ToList().ForEach(s => {
                 s.ClearItem();
                 Debug.Log("Item " + item.Name + " removed");
             });
@@ -37,6 +33,9 @@ namespace Inventory {
         }
 
         public void AddSlot(Slot newSlot) {
+            if (Slots == null)
+                Slots = new List<Slot>();
+
             Slots.Add(newSlot);
         }
     }
