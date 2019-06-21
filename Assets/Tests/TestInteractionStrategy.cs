@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using Inventory;
 using NUnit.Framework;
 using UnityEngine;
 using Items;
 
 namespace Tests {
-    public class TestInteractionStrategy {
+	public class TestInteractionStrategy {
         private InventoryManager _inventoryManager;
         private InteractionStrategy _interactionStrategy;
 
@@ -21,14 +19,17 @@ namespace Tests {
 
         [Test]
         public void TakeItemViewSuccess() {
-            var go = new GameObject();
+			string targetItemName = "Test1";
+			var go = new GameObject();
             var view = go.AddComponent<ItemView>();
-            view.Name = "Test1";
+            view.Name = targetItemName;
             view.itemType = ItemViewType.takable;
             view.Init();
             _interactionStrategy.Execute(go, true);
-            var success = _inventoryManager.IsInventoryContains(view.Item);
-            Assert.True(success);
+            var item = _inventoryManager.GetItem(view.Item);
+			Assert.NotNull(item);
+			var success = item.Name == targetItemName;
+			Assert.True(success);
         }
 
         [Test]
@@ -38,8 +39,8 @@ namespace Tests {
             view.Name = "Test1";
             view.Init();
             _interactionStrategy.Execute(go, true);
-            var unSuccess = _inventoryManager.IsInventoryContains(view.Item);
-            Assert.False(unSuccess);
+			var item = _inventoryManager.GetItem(view.Item);
+			Assert.Null(item);
         }
 
         [Test]

@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Interaction;
-using UnityEngine;
+﻿using UnityEngine;
 using Inventory;
 using Items;
 
-public class InteractionStrategy : IInteractionStrategy {
+public class InteractionStrategy {
     
-    private readonly IInventoryManager _inventoryManager;
+    private readonly IInventory _inventoryManager;
     
     public Item SlotItem { get; set; }
     public string ItemAction { get; private set; }
     public string InteractionStatus { get; private set; }
 
-    public InteractionStrategy(IInventoryManager inventoryManager) {
+    public InteractionStrategy(IInventory inventoryManager) {
         _inventoryManager = inventoryManager;
     }
     public void Execute(GameObject go, bool endInteraction) {
@@ -138,8 +134,8 @@ public class InteractionStrategy : IInteractionStrategy {
 
             if (otherSlot.Item.Interact(SlotItem)) {
                 var combinedItem = otherSlot.Item.CraftedItem;
-                _inventoryManager.RemoveItem(otherSlot.Item);
-                _inventoryManager.RemoveItem(SlotItem);
+                _inventoryManager.GetItem(otherSlot.Item);
+                _inventoryManager.GetItem(SlotItem);
                 if (combinedItem != null && TryPutToInventory(combinedItem)) {
                     SetInteractionStatus("You picked a " + combinedItem.Name);
                 }
@@ -164,7 +160,7 @@ public class InteractionStrategy : IInteractionStrategy {
         }
 
         var craftedItem = item.CraftedItem;
-        _inventoryManager.RemoveItem(SlotItem);
+        _inventoryManager.GetItem(SlotItem);
         if (!IsItemEmpty(craftedItem)) {
             SetInteractionStatus("You picked a " + craftedItem.Name);
             TryPutToInventory(craftedItem);

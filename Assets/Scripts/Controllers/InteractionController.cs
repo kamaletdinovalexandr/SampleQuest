@@ -1,19 +1,17 @@
-﻿using System;
-using InputModule;
-using Interaction;
+﻿using InputModule;
 using UnityEngine;
 using Items;
 using Inventory;
 
 namespace Controllers {
-    public class InteractionController : MBSingleton<InteractionController> {
+	public class InteractionController : MBSingleton<InteractionController> {
         
         private string _itemAction;
         private string _interactionStatus;
 
         private UIController _uiController;
         private InventoryManager _inventoryManager;
-        private IInteractionStrategy _interactionStrategy;
+        private InteractionStrategy _interactionStrategy;
 
         private void Awake() {
             _uiController = FindObjectOfType<UIController>();
