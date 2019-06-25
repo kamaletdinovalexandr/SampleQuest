@@ -3,55 +3,63 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using CameraExtention;
-using Items;
 
 public class SceneLoader : MBSingleton<SceneLoader> {
     [SerializeField] private string StartSceneName;
-	private string _currentScene;
-    private Dictionary<string, bool> _sceneObjects = new Dictionary<string, bool>();
-    private const string SEPARATOR = "-";
+	public const string OBJECTS_CONTAINER = "ObjectsContainer";
+	private const string SEPARATOR = "-";
+	private Dictionary<string, bool> _sceneObjects = new Dictionary<string, bool>();
+	private Scene _currentScene;
 
     void Start () {
-		SceneManager.LoadScene(StartSceneName, LoadSceneMode.Additive);
-		_currentScene = StartSceneName;
-    }
+		StartCoroutine(LoadScene(StartSceneName));
+	}
 
     public void ChangeLocation(string location) {
-        SaveSceneState();
-        SceneManager.UnloadScene(_currentScene);
-        StartCoroutine(LoadScene(location));
-        _currentScene = location;
-        LoadSceneState();
+		UnloadScene();
+		StartCoroutine(LoadScene(location));
     }
 
-    private IEnumerator LoadScene(string scene) {
-        var loading = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive);
+	private void UnloadScene() {
+		var currentScene = SceneManager.GetActiveScene().name;
+		var objectsContainer = GameObject.FindGameObjectWithTag(OBJECTS_CONTAINER);
+		var sceneObjects = objectsContainer.GetComponentsInChildren<Transform>(true);
+
+		foreach (var sceneObject in sceneObjects) {
+			var objectState = sceneObject.gameObject.activeInHierarchy;
+			var objectSaveName = currentScene + SEPARATOR + sceneObject.gameObject.name;
+
+			if (!_sceneObjects.ContainsKey(objectSaveName)) {
+				_sceneObjects.Add(objectSaveName, objectState);
+				Debug.Log("Added: " + objectSaveName + " State: " + objectState);
+			}
+			else {
+				_sceneObjects[objectSaveName] = objectState;
+			}
+		}
+		SceneManager.UnloadSceneAsync(_currentScene);
+	}
+
+	private IEnumerator LoadScene(string scene) {
+		var loading = SceneManager.LoadSceneAsync(scene, LoadSceneMode.Additive);
+
         while (!loading.isDone) {
-            yield return null;
+			yield return null;
         }
-    }
+		_currentScene = SceneManager.GetSceneByName(scene);
+		SceneManager.SetActiveScene(_currentScene);
+		LoadSceneState(scene);
+	}
 
-    private void LoadSceneState() {
-        var sceneObjects = FindObjectsOfType<ItemView>();
-        foreach (var sceneObject in sceneObjects) {
-            var objectSaveName = _currentScene + SEPARATOR + sceneObject.name;
+    private void LoadSceneState(string scene) {
+		var objectsContainer = GameObject.FindGameObjectWithTag(OBJECTS_CONTAINER);
+		var sceneTransforms = objectsContainer.GetComponentsInChildren<Transform>(true);
+		foreach (var sceneObject in sceneTransforms) {
+			var objectSaveName = scene + SEPARATOR + sceneObject.gameObject.name;
             if (_sceneObjects.ContainsKey(objectSaveName)) {
+				Debug.Log("Found" + objectSaveName);
                 var objectState = _sceneObjects[objectSaveName];
-                sceneObject.gameObject.SetActive(objectState);
-            }
-        }
-    }
-
-    private void SaveSceneState() {
-        var sceneObjects = FindObjectsOfType<ItemView>();
-        foreach(var sceneObject in sceneObjects) {
-            var objectState = sceneObject.isActiveAndEnabled;
-            var objectSaveName = _currentScene + SEPARATOR + sceneObject.name;
-            if (!_sceneObjects.ContainsKey(objectSaveName)) {
-                _sceneObjects.Add(objectSaveName, objectState);
-            }
-            else {
-                _sceneObjects[objectSaveName] = objectState;
+				sceneObject.gameObject.SetActive(objectState);
             }
         }
     }

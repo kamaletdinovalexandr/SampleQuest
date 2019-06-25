@@ -2,11 +2,15 @@
 
 namespace Items {
 	public class ScenePortal : ItemView {
-
+		[Header("State Visual Links")]
+		[SerializeField] private GameObject PortalClosed;
+		[SerializeField] private GameObject PortalOpened;
+		[Header("Start State")]
 		[SerializeField] private PortalState PortalState = PortalState.closed;
+
 		public string SceneToLoad;
 
-		public bool isOpened { get { return PortalState == PortalState.open; }
+		public bool isOpened { get { return PortalOpened.gameObject.activeInHierarchy; }
 		}
 
 		public override bool Interact(Item item) {
@@ -24,8 +28,8 @@ namespace Items {
 		private bool TryOpenPortal(string itemName) {
 			if (PortalState == PortalState.closed && !string.IsNullOrEmpty(itemName) && itemName == InputItemName)  {
 				PortalState = PortalState.open;
-				var sr = GetComponent<SpriteRenderer>();
-				sr.sprite = CraftedItemIcon;
+				PortalClosed.SetActive(false);
+				PortalOpened.SetActive(true);
 				return true;
 			}
 

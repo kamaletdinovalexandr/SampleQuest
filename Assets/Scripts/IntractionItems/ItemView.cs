@@ -32,10 +32,8 @@ namespace Items {
 
         public void Init() {
             var sr = GetComponent<SpriteRenderer>();
-            if (sr == null)
-                sr = gameObject.AddComponent<SpriteRenderer>();
-            
-            Icon = sr.sprite;
+            if (sr != null)
+            	Icon = sr.sprite;
             
             Item = new Item(Name,
                 Icon, 
