@@ -30,7 +30,7 @@ namespace Items {
             Init();
         }
 
-        public void Init() {
+        public virtual void Init() {
             var sr = GetComponent<SpriteRenderer>();
             if (sr != null)
             	Icon = sr.sprite;
